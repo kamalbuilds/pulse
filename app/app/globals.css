@@ -1,0 +1,200 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 84% 4.9%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .gradient-text {
+    @apply bg-gradient-to-r from-zenith-400 to-zenith-600 bg-clip-text text-transparent;
+  }
+  
+  .glass-card {
+    @apply backdrop-blur-sm bg-card/50 border border-border/50;
+  }
+  
+  .metric-card {
+    @apply glass-card rounded-lg p-6 transition-all duration-200 hover:bg-card/70;
+  }
+  
+  .crypto-green {
+    @apply text-success-400;
+  }
+  
+  .crypto-red {
+    @apply text-error-400;
+  }
+  
+  .shimmer {
+    @apply animate-pulse bg-gradient-to-r from-transparent via-white/10 to-transparent bg-[length:200%_100%];
+  }
+  
+  .loading-skeleton {
+    @apply shimmer rounded bg-muted;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border)) transparent;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--border));
+    border-radius: 2px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--border));
+  }
+}
+
+/* Custom animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 5px rgba(14, 165, 233, 0.5); }
+  50% { box-shadow: 0 0 20px rgba(14, 165, 233, 0.8); }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Chart and data visualization styles */
+.recharts-tooltip-content {
+  @apply glass-card border border-border/50 shadow-lg !important;
+}
+
+.recharts-tooltip-label {
+  @apply text-foreground font-medium !important;
+}
+
+.recharts-tooltip-item {
+  @apply text-muted-foreground !important;
+}
+
+/* Portfolio performance indicators */
+.performance-positive {
+  @apply text-success-400 bg-success-400/10 border-success-400/20;
+}
+
+.performance-negative {
+  @apply text-error-400 bg-error-400/10 border-error-400/20;
+}
+
+.performance-neutral {
+  @apply text-muted-foreground bg-muted/10 border-border/20;
+}
+
+/* Privacy indicators */
+.privacy-secure {
+  @apply text-zenith-400 bg-zenith-400/10 border-zenith-400/20;
+}
+
+.privacy-computing {
+  @apply text-warning-400 bg-warning-400/10 border-warning-400/20;
+}
+
+/* Wallet connection styles */
+.wallet-connected {
+  @apply bg-success-500/20 text-success-400 border-success-400/30;
+}
+
+.wallet-disconnected {
+  @apply bg-error-500/20 text-error-400 border-error-400/30;
+}
+
+/* Loading states */
+.loading-dots::after {
+  content: '';
+  animation: loading-dots 1.5s infinite;
+}
+
+@keyframes loading-dots {
+  0%, 20% { content: ''; }
+  40% { content: '.'; }
+  60% { content: '..'; }
+  80%, 100% { content: '...'; }
+}
+
+/* Focus and accessibility */
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-zenith-500 focus:ring-offset-2 focus:ring-offset-background;
+}
+
+/* Mobile responsive text */
+@media (max-width: 640px) {
+  .responsive-text {
+    font-size: clamp(0.875rem, 4vw, 1rem);
+  }
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+} 
