@@ -1,0 +1,28 @@
+[package]
+name = "prediction_markets"
+version = "0.1.0"
+description = "Tinder-style prediction markets with Arcium privacy"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "prediction_markets"
+
+[features]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+cpi = ["no-entrypoint"]
+default = []
+
+[dependencies]
+anchor-lang = "0.31.1"
+anchor-spl = "0.31.1"
+arcium-anchor = "0.1.0"
+arcium-macros = "0.1.0"
+arcium-client = "0.1.47"
+
+# [dev-dependencies]
+# solana-program-test = "~1.18.26"
+# solana-sdk = "~1.18.26"
+# tokio = { version = "1", features = ["full"] }
