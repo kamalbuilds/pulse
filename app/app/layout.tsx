@@ -9,23 +9,23 @@ import { Footer } from '@/components/layout/Footer'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata = {
-  title: 'ZenithVeil - Privacy-Preserving DeFi Analytics',
-  description: 'Peak Performance, Private by Design. Benchmark your DeFi portfolio performance with institutional-grade analytics while preserving complete privacy.',
-  keywords: ['DeFi', 'Portfolio Analytics', 'Privacy', 'Solana', 'Arcium', 'MPC', 'Encrypted Computation'],
-  authors: [{ name: 'ZenithVeil Team' }],
-  creator: 'ZenithVeil',
-  metadataBase: new URL('https://zenithveil.com'),
+  title: 'SwipePredict - Tinder for Prediction Markets',
+  description: 'Swipe right on events you think will happen, left on those you don\'t. Built on Solana with Arcium privacy protection.',
+  keywords: ['Prediction Markets', 'Swipe Interface', 'Privacy', 'Solana', 'Arcium', 'MPC', 'Blockchain'],
+  authors: [{ name: 'SwipePredict Team' }],
+  creator: 'SwipePredict',
+  metadataBase: new URL('https://swipepredict.com'),
   openGraph: {
-    title: 'ZenithVeil - Privacy-Preserving DeFi Analytics',
-    description: 'Peak Performance, Private by Design. Benchmark your DeFi portfolio performance with institutional-grade analytics while preserving complete privacy.',
-    url: 'https://zenithveil.com',
-    siteName: 'ZenithVeil',
+    title: 'SwipePredict - Tinder for Prediction Markets',
+    description: 'Swipe right on events you think will happen, left on those you don\'t. Built on Solana with Arcium privacy protection.',
+    url: 'https://swipepredict.com',
+    siteName: 'SwipePredict',
     images: [
       {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'ZenithVeil - Privacy-Preserving DeFi Analytics',
+        alt: 'SwipePredict - Tinder for Prediction Markets',
       },
     ],
     locale: 'en_US',
@@ -33,8 +33,8 @@ export const metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'ZenithVeil - Privacy-Preserving DeFi Analytics',
-    description: 'Peak Performance, Private by Design. Benchmark your DeFi portfolio performance with institutional-grade analytics while preserving complete privacy.',
+    title: 'SwipePredict - Tinder for Prediction Markets',
+    description: 'Swipe right on events you think will happen, left on those you don\'t. Built on Solana with Arcium privacy protection.',
     images: ['/og-image.png'],
   },
   robots: {

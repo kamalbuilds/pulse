@@ -5,7 +5,7 @@ import { WalletProvider } from '@solana/wallet-adapter-react';
 import { ThemeProvider } from '../../components/providers/ThemeProvider';
 
 // Mock wallets for testing
-const mockWallets = [];
+const mockWallets: any[] = [];
 
 // Mock Solana connection
 const mockEndpoint = 'http://localhost:8899';

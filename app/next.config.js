@@ -22,10 +22,7 @@ const nextConfig = {
   env: {
     NEXT_PUBLIC_SOLANA_NETWORK: process.env.NEXT_PUBLIC_SOLANA_NETWORK || 'devnet',
     NEXT_PUBLIC_ARCIUM_NETWORK: process.env.NEXT_PUBLIC_ARCIUM_NETWORK || 'testnet',
-  },
-  experimental: {
-    appDir: true,
-  },
+  }
 };
 
 module.exports = nextConfig; 
