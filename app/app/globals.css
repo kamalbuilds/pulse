@@ -1,6 +1,9 @@
 @import "tailwindcss";
 @config "../tailwind.config.js";
 
+/* Import mobile-specific styles */
+@import "../styles/mobile.css";
+
 @layer base {
   :root {
     --background: 222.2 84% 4.9%;
