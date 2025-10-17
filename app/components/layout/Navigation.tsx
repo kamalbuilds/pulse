@@ -3,7 +3,8 @@
 import React from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
-import { TrendingUp, Zap, Trophy, User } from 'lucide-react';
+import { TrendingUp, Zap, Trophy, User, Plus, Settings } from 'lucide-react';
+import Link from 'next/link';
 
 export const Navigation: React.FC = () => {
   const { connected } = useWallet();
@@ -21,13 +22,31 @@ export const Navigation: React.FC = () => {
 
         {/* Navigation Links */}
         <div className="hidden md:flex items-center space-x-6">
-          <a
-            href="#"
+          <Link
+            href="/"
             className="flex items-center space-x-2 text-muted-foreground hover:text-foreground transition-colors"
           >
             <TrendingUp className="w-4 h-4" />
             <span>Markets</span>
-          </a>
+          </Link>
+          {connected && (
+            <>
+              <Link
+                href="/create"
+                className="flex items-center space-x-2 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Create</span>
+              </Link>
+              <Link
+                href="/manage"
+                className="flex items-center space-x-2 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <Settings className="w-4 h-4" />
+                <span>Manage</span>
+              </Link>
+            </>
+          )}
           <a
             href="#"
             className="flex items-center space-x-2 text-muted-foreground hover:text-foreground transition-colors"

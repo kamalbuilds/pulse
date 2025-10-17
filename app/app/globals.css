@@ -1,6 +1,5 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@config "../tailwind.config.js";
 
 @layer base {
   :root {
@@ -29,7 +28,7 @@
 
 @layer base {
   * {
-    @apply border-border;
+    border-color: hsl(var(--border));
   }
   body {
     @apply bg-background text-foreground;
@@ -42,27 +41,42 @@
   }
   
   .glass-card {
-    @apply backdrop-blur-sm bg-card/50 border border-border/50;
+    backdrop-filter: blur(8px);
+    background-color: hsl(var(--card) / 0.5);
+    border: 1px solid hsl(var(--border) / 0.5);
   }
   
   .metric-card {
-    @apply glass-card rounded-lg p-6 transition-all duration-200 hover:bg-card/70;
+    backdrop-filter: blur(8px);
+    background-color: hsl(var(--card) / 0.5);
+    border: 1px solid hsl(var(--border) / 0.5);
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    transition: all 0.2s;
+  }
+
+  .metric-card:hover {
+    background-color: hsl(var(--card) / 0.7);
   }
   
   .crypto-green {
-    @apply text-success-400;
+    color: rgb(74 222 128);
   }
   
   .crypto-red {
-    @apply text-error-400;
+    color: rgb(248 113 113);
   }
+  
   
   .shimmer {
-    @apply animate-pulse bg-gradient-to-r from-transparent via-white/10 to-transparent bg-[length:200%_100%];
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
   }
-  
+
   .loading-skeleton {
-    @apply shimmer rounded bg-muted;
+    border-radius: 0.25rem;
+    background-color: hsl(var(--muted));
   }
 }
 
@@ -115,6 +129,11 @@
   50% { box-shadow: 0 0 20px rgba(14, 165, 233, 0.8); }
 }
 
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
 .animate-float {
   animation: float 3s ease-in-out infinite;
 }
@@ -125,15 +144,19 @@
 
 /* Chart and data visualization styles */
 .recharts-tooltip-content {
-  @apply glass-card border border-border/50 shadow-lg !important;
+  backdrop-filter: blur(8px) !important;
+  background-color: hsl(var(--card) / 0.5) !important;
+  border: 1px solid hsl(var(--border) / 0.5) !important;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1) !important;
 }
 
 .recharts-tooltip-label {
-  @apply text-foreground font-medium !important;
+  color: hsl(var(--foreground)) !important;
+  font-weight: 500 !important;
 }
 
 .recharts-tooltip-item {
-  @apply text-muted-foreground !important;
+  color: hsl(var(--muted-foreground)) !important;
 }
 
 /* Portfolio performance indicators */
