@@ -3,9 +3,9 @@ import { WalletContextState } from '@solana/wallet-adapter-react';
 import { Market, VoteChoice, UserPrediction } from '@/types/market';
 
 // Arcium client configuration - These should be updated with real program IDs
-const ARCIUM_PROGRAM_ID = new PublicKey('Arc1umEncryptedComputeProgram111111111111111111');
-const PREDICTION_MARKETS_PROGRAM_ID = new PublicKey('PredictionMarketsProgram111111111111111111111');
-const MXE_EXECUTION_PROGRAM_ID = new PublicKey('MXEExecutionProgram11111111111111111111111111');
+const ARCIUM_PROGRAM_ID = new PublicKey('11111111111111111111111111111112'); // System Program as placeholder
+const PREDICTION_MARKETS_PROGRAM_ID = new PublicKey('11111111111111111111111111111112'); // System Program as placeholder
+const MXE_EXECUTION_PROGRAM_ID = new PublicKey('11111111111111111111111111111112'); // System Program as placeholder
 
 // Arcium Network Constants (from paper)
 const CLUSTER_SIZE = 3; // Minimum cluster size for MPC

@@ -1,10 +1,22 @@
 // Core Types
 export type MarketType = 'binary' | 'categorical' | 'scalar';
 export type PrivacyLevel = 'public' | 'semi_private' | 'private';
-export type MarketStatus = 'active' | 'pending_resolution' | 'resolved' | 'disputed' | 'cancelled';
-export type VoteChoice = 'yes' | 'no' | 'pass';
 
 // Enums
+export enum MarketStatus {
+  ACTIVE = 'active',
+  PENDING_RESOLUTION = 'pending_resolution',
+  RESOLVED = 'resolved',
+  DISPUTED = 'disputed',
+  CANCELLED = 'cancelled',
+}
+
+export enum VoteChoice {
+  YES = 'yes',
+  NO = 'no',
+  PASS = 'pass',
+}
+
 export enum MarketCategory {
   SPORTS = 'sports',
   POLITICS = 'politics',
@@ -75,7 +87,7 @@ export interface Market {
   tags?: string[];
   createdBy?: string;
   creator?: string;
-  status: MarketStatus | string;
+  status: MarketStatus;
   resolutionSource?: string;
 }
 

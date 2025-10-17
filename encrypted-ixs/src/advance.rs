@@ -11,7 +11,7 @@ mod circuits {
     // Vote data structure for private voting
     #[derive(ArcisType)]
     pub struct VoteData {
-        pub voter: ArcisPubkey,
+        pub voter: [u8; 32],
         pub market_id: u64,
         pub vote_choice: u8, // 0 = No, 1 = Yes, 2 = Skip
         pub stake_amount: u64,
@@ -40,7 +40,7 @@ mod circuits {
     // Payout calculation data
     #[derive(ArcisType)]
     pub struct PayoutData {
-        pub user: ArcisPubkey,
+        pub user: [u8; 32],
         pub market_id: u64,
         pub user_stake: u64,
         pub user_vote: u8,
@@ -103,7 +103,7 @@ mod circuits {
         votes_ctxt: Enc<Shared, [VoteData; 100]>, // Batch of up to 100 votes
         vote_count_ctxt: Enc<Shared, u8>,
         current_state_ctxt: Enc<Mxe, MarketVotingState>
-    ) -> Enc<Shared, MarketVotingState> {
+    ) -> Enc<Shared, [u8; 32]> {
         let votes = votes_ctxt.to_arcis();
         let vote_count = vote_count_ctxt.to_arcis();
         let mut state = current_state_ctxt.to_arcis();
@@ -139,10 +139,58 @@ mod circuits {
             }
         }
 
-        // Update last updated timestamp
-        state.last_updated = state.last_updated + 1; // Simplified timestamp increment
+        // Prepare aggregated results for public revelation
+        let mut result = [0u8; 32];
 
-        votes_ctxt.owner.from_arcis(state)
+        // Pack results into bytes for return
+        let yes_votes_bytes = state.total_yes_votes.to_le_bytes();
+        let no_votes_bytes = state.total_no_votes.to_le_bytes();
+        let yes_stake_bytes = state.total_yes_stake.to_le_bytes();
+        let no_stake_bytes = state.total_no_stake.to_le_bytes();
+        let participants_bytes = state.total_participants.to_le_bytes();
+
+        result[0] = yes_votes_bytes[0];
+        result[1] = yes_votes_bytes[1];
+        result[2] = yes_votes_bytes[2];
+        result[3] = yes_votes_bytes[3];
+
+        result[4] = no_votes_bytes[0];
+        result[5] = no_votes_bytes[1];
+        result[6] = no_votes_bytes[2];
+        result[7] = no_votes_bytes[3];
+
+        result[8] = yes_stake_bytes[0];
+        result[9] = yes_stake_bytes[1];
+        result[10] = yes_stake_bytes[2];
+        result[11] = yes_stake_bytes[3];
+        result[12] = yes_stake_bytes[4];
+        result[13] = yes_stake_bytes[5];
+        result[14] = yes_stake_bytes[6];
+        result[15] = yes_stake_bytes[7];
+
+        result[16] = no_stake_bytes[0];
+        result[17] = no_stake_bytes[1];
+        result[18] = no_stake_bytes[2];
+        result[19] = no_stake_bytes[3];
+        result[20] = no_stake_bytes[4];
+        result[21] = no_stake_bytes[5];
+        result[22] = no_stake_bytes[6];
+        result[23] = no_stake_bytes[7];
+
+        result[24] = participants_bytes[0];
+        result[25] = participants_bytes[1];
+        result[26] = participants_bytes[2];
+        result[27] = participants_bytes[3];
+
+        // Calculate market probability (weighted average)
+        let market_probability = if state.total_yes_stake + state.total_no_stake > 0 {
+            state.weighted_probability_sum / (state.total_yes_stake + state.total_no_stake)
+        } else {
+            50 // Default to 50% if no stake
+        };
+        result[28] = market_probability as u8;
+
+        votes_ctxt.owner.from_arcis(result)
     }
 
     // Calculate individual payout while preserving privacy
@@ -191,27 +239,17 @@ mod circuits {
         payout_ctxt.owner.from_arcis(final_payout)
     }
 
-    // Market odds calculation result
-    #[derive(ArcisType)]
-    pub struct MarketOdds {
-        pub yes_probability: u8,
-        pub no_probability: u8,
-        pub total_participants: u32,
-        pub high_confidence: bool,
-        pub average_conviction: u8,
-        pub liquidity_level: u8,
-    }
-
     // Privacy-preserving market maker pricing
     #[instruction]
     pub fn calculate_market_odds(
         state_ctxt: Enc<Shared, MarketVotingState>
-    ) -> Enc<Shared, MarketOdds> {
+    ) -> Enc<Shared, [u8; 8]> {
         let state = state_ctxt.to_arcis();
 
         let total_stake = state.total_yes_stake + state.total_no_stake;
+        let mut result = [0u8; 8];
 
-        let odds = if total_stake > 0 {
+        if total_stake > 0 {
             // Calculate implied probabilities based on stake distribution
             let yes_probability = (state.total_yes_stake * 100) / total_stake;
             let no_probability = (state.total_no_stake * 100) / total_stake;
@@ -228,27 +266,24 @@ mod circuits {
             let adjusted_yes = (yes_probability * liquidity_factor) / 100;
             let adjusted_no = (no_probability * liquidity_factor) / 100;
 
-            MarketOdds {
-                yes_probability: adjusted_yes as u8,
-                no_probability: adjusted_no as u8,
-                total_participants: state.total_participants,
-                high_confidence: total_stake > 1000,
-                average_conviction: ((state.conviction_weighted_yes + state.conviction_weighted_no) / total_stake.max(1)) as u8,
-                liquidity_level: if total_stake > 10000 { 3 } else if total_stake > 1000 { 2 } else { 1 },
-            }
+            // Pack results
+            result[0] = adjusted_yes as u8;
+            result[1] = adjusted_no as u8;
+            let participants_bytes = state.total_participants.to_le_bytes();
+            result[2] = participants_bytes[0];
+            result[3] = participants_bytes[1];
+            result[4] = participants_bytes[2];
+            result[5] = participants_bytes[3];
+            result[6] = if total_stake > 1000 { 1 } else { 0 }; // High confidence flag
+            result[7] = ((state.conviction_weighted_yes + state.conviction_weighted_no) / total_stake.max(1)) as u8; // Avg conviction
         } else {
             // No stake yet - default to 50/50
-            MarketOdds {
-                yes_probability: 50,
-                no_probability: 50,
-                total_participants: 0,
-                high_confidence: false,
-                average_conviction: 0,
-                liquidity_level: 0,
-            }
-        };
+            result[0] = 50;
+            result[1] = 50;
+            result[6] = 0; // Low confidence
+        }
 
-        state_ctxt.owner.from_arcis(odds)
+        state_ctxt.owner.from_arcis(result)
     }
 
     // Anti-manipulation detection
