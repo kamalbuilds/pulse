@@ -1,0 +1,352 @@
+// Arcium MPC computation for encrypted oracle consensus calculation
+// This computation aggregates encrypted oracle votes to determine market resolution
+
+use arcium_types::*;
+use std::collections::HashMap;
+
+// Input parameters for consensus calculation
+struct ConsensusInput {
+    market_id: u64,                    // Market identifier
+    min_participation_rate: u8,        // Minimum participation rate required
+    consensus_threshold: u8,            // Consensus threshold (51-100)
+    timestamp: u128,                   // Calculation timestamp
+}
+
+// Individual oracle vote data (encrypted)
+struct EncryptedOracleVote {
+    oracle_pubkey: ArcisPubkey,        // Oracle's public key
+    encrypted_vote: EncryptedBool,     // Encrypted vote decision
+    confidence_level: u8,              // Confidence level
+    reputation_weight: u16,            // Oracle's reputation weight
+    anti_collusion_score: u8,          // Anti-collusion score
+    timestamp: u128,                   // Vote timestamp
+}
+
+// Consensus calculation output
+struct ConsensusOutput {
+    consensus_reached: bool,           // Whether consensus was reached
+    final_outcome: bool,               // Final outcome (if consensus reached)
+    participation_rate: u8,            // Actual participation rate
+    consensus_strength: u8,            // Strength of consensus (0-100)
+    total_validators: u16,             // Total eligible validators
+    manipulation_detected: bool,       // Whether manipulation was detected
+}
+
+// Weighted voting algorithm with reputation and anti-collusion scoring
+fn calculate_weighted_consensus(
+    votes: &[EncryptedOracleVote],
+    eligible_validators: u16,
+    min_participation_rate: u8,
+    consensus_threshold: u8,
+) -> ConsensusOutput {
+    let total_validators = eligible_validators;
+    let participation_rate = ((votes.len() * 100) / total_validators as usize) as u8;
+
+    // Check minimum participation requirement
+    if participation_rate < min_participation_rate {
+        return ConsensusOutput {
+            consensus_reached: false,
+            final_outcome: false,
+            participation_rate,
+            consensus_strength: 0,
+            total_validators,
+            manipulation_detected: false,
+        };
+    }
+
+    // Decrypt votes and calculate weighted totals
+    let mut total_yes_weight = 0u64;
+    let mut total_no_weight = 0u64;
+    let mut total_weight = 0u64;
+    let mut high_collusion_votes = 0u32;
+
+    for vote in votes {
+        // Skip votes with high collusion risk
+        if vote.anti_collusion_score < 70 {
+            high_collusion_votes += 1;
+            continue;
+        }
+
+        // Decrypt vote
+        let decrypted_vote = decrypt_bool(&vote.encrypted_vote);
+
+        // Calculate vote weight based on multiple factors
+        let base_weight = vote.reputation_weight as u64;
+        let confidence_multiplier = (vote.confidence_level as f64 / 100.0).max(0.1);
+        let anti_collusion_multiplier = (vote.anti_collusion_score as f64 / 100.0);
+
+        let final_weight = (base_weight as f64 * confidence_multiplier * anti_collusion_multiplier) as u64;
+
+        if decrypted_vote {
+            total_yes_weight += final_weight;
+        } else {
+            total_no_weight += final_weight;
+        }
+
+        total_weight += final_weight;
+    }
+
+    // Check for manipulation (too many high-collusion votes)
+    let manipulation_detected = high_collusion_votes > (votes.len() / 4) as u32;
+
+    if manipulation_detected {
+        return ConsensusOutput {
+            consensus_reached: false,
+            final_outcome: false,
+            participation_rate,
+            consensus_strength: 0,
+            total_validators,
+            manipulation_detected: true,
+        };
+    }
+
+    // Calculate consensus strength
+    let yes_percentage = if total_weight > 0 {
+        ((total_yes_weight * 100) / total_weight) as u8
+    } else {
+        50
+    };
+
+    let no_percentage = 100 - yes_percentage;
+
+    // Determine if consensus threshold is met
+    let consensus_reached = yes_percentage >= consensus_threshold || no_percentage >= consensus_threshold;
+    let final_outcome = yes_percentage > no_percentage;
+    let consensus_strength = if consensus_reached {
+        yes_percentage.max(no_percentage)
+    } else {
+        0
+    };
+
+    ConsensusOutput {
+        consensus_reached,
+        final_outcome,
+        participation_rate,
+        consensus_strength,
+        total_validators,
+        manipulation_detected: false,
+    }
+}
+
+// Advanced consensus algorithm with quadratic voting elements
+fn calculate_quadratic_consensus(
+    votes: &[EncryptedOracleVote],
+    eligible_validators: u16,
+    min_participation_rate: u8,
+    consensus_threshold: u8,
+) -> ConsensusOutput {
+    // First, run standard weighted consensus
+    let standard_result = calculate_weighted_consensus(
+        votes,
+        eligible_validators,
+        min_participation_rate,
+        consensus_threshold
+    );
+
+    // If standard consensus fails, try quadratic voting
+    if !standard_result.consensus_reached && !standard_result.manipulation_detected {
+        return calculate_quadratic_weighted_consensus(votes, eligible_validators, min_participation_rate);
+    }
+
+    standard_result
+}
+
+// Quadratic voting implementation for edge cases
+fn calculate_quadratic_weighted_consensus(
+    votes: &[EncryptedOracleVote],
+    eligible_validators: u16,
+    min_participation_rate: u8,
+) -> ConsensusOutput {
+    let participation_rate = ((votes.len() * 100) / eligible_validators as usize) as u8;
+
+    if participation_rate < min_participation_rate {
+        return ConsensusOutput {
+            consensus_reached: false,
+            final_outcome: false,
+            participation_rate,
+            consensus_strength: 0,
+            total_validators: eligible_validators,
+            manipulation_detected: false,
+        };
+    }
+
+    let mut total_yes_weight = 0f64;
+    let mut total_no_weight = 0f64;
+
+    for vote in votes {
+        if vote.anti_collusion_score < 70 {
+            continue;
+        }
+
+        let decrypted_vote = decrypt_bool(&vote.encrypted_vote);
+
+        // Quadratic weighting: sqrt of (reputation * confidence * anti_collusion)
+        let reputation_factor = vote.reputation_weight as f64 / 100.0;
+        let confidence_factor = vote.confidence_level as f64 / 100.0;
+        let anti_collusion_factor = vote.anti_collusion_score as f64 / 100.0;
+
+        let combined_factor = reputation_factor * confidence_factor * anti_collusion_factor;
+        let quadratic_weight = combined_factor.sqrt() * 100.0;
+
+        if decrypted_vote {
+            total_yes_weight += quadratic_weight;
+        } else {
+            total_no_weight += quadratic_weight;
+        }
+    }
+
+    let total_weight = total_yes_weight + total_no_weight;
+    let yes_percentage = if total_weight > 0.0 {
+        ((total_yes_weight / total_weight) * 100.0) as u8
+    } else {
+        50
+    };
+
+    let consensus_reached = yes_percentage >= 66 || yes_percentage <= 34; // 2/3 majority for quadratic
+    let final_outcome = yes_percentage > 50;
+    let consensus_strength = if consensus_reached {
+        if yes_percentage > 50 { yes_percentage } else { 100 - yes_percentage }
+    } else {
+        0
+    };
+
+    ConsensusOutput {
+        consensus_reached,
+        final_outcome,
+        participation_rate,
+        consensus_strength,
+        total_validators: eligible_validators,
+        manipulation_detected: false,
+    }
+}
+
+// Time-weighted consensus for handling late votes
+fn apply_time_weighting(votes: &mut [EncryptedOracleVote], proposal_start_time: u128) {
+    for vote in votes.iter_mut() {
+        let time_since_proposal = vote.timestamp.saturating_sub(proposal_start_time);
+        let hours_elapsed = time_since_proposal / 3600; // Convert to hours
+
+        // Reduce weight for very late votes
+        if hours_elapsed > 12 {
+            let reduction_factor = 0.8f64.powf((hours_elapsed as f64 - 12.0) / 12.0);
+            vote.reputation_weight = (vote.reputation_weight as f64 * reduction_factor) as u16;
+        }
+    }
+}
+
+// Sybil attack detection
+fn detect_sybil_attacks(votes: &[EncryptedOracleVote]) -> bool {
+    let mut address_patterns: HashMap<[u8; 4], u32> = HashMap::new();
+
+    for vote in votes {
+        let addr_prefix = [
+            vote.oracle_pubkey.as_bytes()[0],
+            vote.oracle_pubkey.as_bytes()[1],
+            vote.oracle_pubkey.as_bytes()[2],
+            vote.oracle_pubkey.as_bytes()[3],
+        ];
+
+        *address_patterns.entry(addr_prefix).or_insert(0) += 1;
+    }
+
+    // Flag if too many similar address prefixes
+    address_patterns.values().any(|&count| count > 5)
+}
+
+// Load oracle votes for the market
+fn load_oracle_votes_for_market(market_id: u64) -> Vec<EncryptedOracleVote> {
+    // In production, this would load encrypted votes from the Arcium network
+    // For simulation, return mock data
+    vec![
+        EncryptedOracleVote {
+            oracle_pubkey: ArcisPubkey::new([1; 32]),
+            encrypted_vote: encrypt_bool(true),
+            confidence_level: 85,
+            reputation_weight: 920,
+            anti_collusion_score: 95,
+            timestamp: 1000,
+        },
+        EncryptedOracleVote {
+            oracle_pubkey: ArcisPubkey::new([2; 32]),
+            encrypted_vote: encrypt_bool(true),
+            confidence_level: 78,
+            reputation_weight: 880,
+            anti_collusion_score: 88,
+            timestamp: 1050,
+        },
+        EncryptedOracleVote {
+            oracle_pubkey: ArcisPubkey::new([3; 32]),
+            encrypted_vote: encrypt_bool(false),
+            confidence_level: 72,
+            reputation_weight: 750,
+            anti_collusion_score: 82,
+            timestamp: 1100,
+        },
+    ]
+}
+
+fn get_eligible_validator_count(market_id: u64) -> u16 {
+    // In production, this would query the validator registry
+    // For simulation, return a fixed number
+    15
+}
+
+// Helper functions for encryption/decryption (mock implementations)
+fn encrypt_bool(value: bool) -> EncryptedBool {
+    // In production, this would use Arcium's encryption
+    EncryptedBool::new([if value { 1 } else { 0 }; 32])
+}
+
+fn decrypt_bool(encrypted: &EncryptedBool) -> bool {
+    // In production, this would use Arcium's decryption in MPC
+    encrypted.as_bytes()[0] == 1
+}
+
+// Main consensus calculation entry point
+#[arcium_computation]
+pub fn calculate_oracle_consensus(input: ConsensusInput) -> Result<Vec<u8>, String> {
+    // Load oracle votes for the market
+    let mut votes = load_oracle_votes_for_market(input.market_id);
+    let eligible_validators = get_eligible_validator_count(input.market_id);
+
+    // Check for Sybil attacks
+    if detect_sybil_attacks(&votes) {
+        let output = ConsensusOutput {
+            consensus_reached: false,
+            final_outcome: false,
+            participation_rate: 0,
+            consensus_strength: 0,
+            total_validators: eligible_validators,
+            manipulation_detected: true,
+        };
+
+        return Ok(serialize_consensus_output(&output));
+    }
+
+    // Apply time weighting
+    apply_time_weighting(&mut votes, input.timestamp.saturating_sub(86400)); // 24 hours ago
+
+    // Calculate consensus using advanced algorithm
+    let result = calculate_quadratic_consensus(
+        &votes,
+        eligible_validators,
+        input.min_participation_rate,
+        input.consensus_threshold,
+    );
+
+    Ok(serialize_consensus_output(&result))
+}
+
+// Serialize consensus output for return to Solana program
+fn serialize_consensus_output(output: &ConsensusOutput) -> Vec<u8> {
+    let mut serialized = Vec::new();
+
+    serialized.push(if output.consensus_reached { 1 } else { 0 });
+    serialized.push(if output.final_outcome { 1 } else { 0 });
+    serialized.push(output.participation_rate);
+    serialized.push(output.consensus_strength);
+    serialized.extend_from_slice(&output.total_validators.to_le_bytes());
+    serialized.push(if output.manipulation_detected { 1 } else { 0 });
+
+    serialized
+}

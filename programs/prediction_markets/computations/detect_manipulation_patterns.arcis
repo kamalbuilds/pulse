@@ -1,0 +1,477 @@
+// Arcium MPC computation for detecting manipulation patterns in oracle voting
+// This computation analyzes encrypted voting patterns to identify coordinated attacks
+
+use arcium_types::*;
+use std::collections::HashMap;
+
+// Input parameters for manipulation detection
+struct ManipulationDetectionInput {
+    market_id: u64,                    // Market identifier
+    analysis_window_hours: u16,        // Time window for analysis
+    sensitivity_threshold: u8,          // Detection sensitivity (0-100)
+    timestamp: u128,                   // Analysis timestamp
+}
+
+// Oracle vote pattern data
+struct VotePattern {
+    oracle_pubkey: ArcisPubkey,        // Oracle's public key
+    vote_timestamps: Vec<u128>,        // Timestamps of votes
+    confidence_levels: Vec<u8>,        // Confidence levels
+    vote_outcomes: Vec<EncryptedBool>, // Encrypted vote outcomes
+    reputation_scores: Vec<u16>,       // Historical reputation scores
+    evidence_hashes: Vec<Vec<u8>>,     // Evidence hash patterns
+}
+
+// Manipulation detection output
+struct ManipulationOutput {
+    manipulation_detected: bool,       // Whether manipulation was detected
+    manipulation_score: u8,            // Manipulation confidence (0-100)
+    affected_validators: u8,           // Number of potentially compromised validators
+    pattern_type: u8,                  // Type of manipulation pattern detected
+    evidence_strength: u8,             // Strength of evidence
+}
+
+// Manipulation pattern types
+const PATTERN_COORDINATED_TIMING: u8 = 0b00000001;
+const PATTERN_VOTE_BUYING: u8 = 0b00000010;
+const PATTERN_SYBIL_ATTACK: u8 = 0b00000100;
+const PATTERN_CONFIDENCE_MANIPULATION: u8 = 0b00001000;
+const PATTERN_EVIDENCE_COPYING: u8 = 0b00010000;
+const PATTERN_REPUTATION_FARMING: u8 = 0b00100000;
+const PATTERN_COLLUSIVE_BEHAVIOR: u8 = 0b01000000;
+const PATTERN_WHALE_INFLUENCE: u8 = 0b10000000;
+
+// Coordinated timing analysis
+fn detect_coordinated_timing(patterns: &[VotePattern], sensitivity: u8) -> (bool, u8, u8) {
+    let mut coordination_score = 0u8;
+    let mut affected_count = 0u8;
+
+    // Analyze vote timing clusters
+    let mut all_timestamps: Vec<(u128, usize)> = Vec::new();
+    for (oracle_idx, pattern) in patterns.iter().enumerate() {
+        for &timestamp in &pattern.vote_timestamps {
+            all_timestamps.push((timestamp, oracle_idx));
+        }
+    }
+
+    all_timestamps.sort_by_key(|&(timestamp, _)| timestamp);
+
+    // Look for suspicious timing clusters
+    let mut cluster_start = 0;
+    for i in 1..all_timestamps.len() {
+        let time_diff = all_timestamps[i].0 - all_timestamps[cluster_start].0;
+
+        // If votes are within 60 seconds of each other
+        if time_diff <= 60 {
+            let cluster_size = i - cluster_start + 1;
+            if cluster_size >= 3 {
+                coordination_score = coordination_score.saturating_add(20);
+                affected_count = affected_count.saturating_add(cluster_size as u8);
+            }
+        } else {
+            cluster_start = i;
+        }
+    }
+
+    // Check for multiple coordinated clusters
+    let cluster_count = count_timing_clusters(&all_timestamps, 60);
+    if cluster_count > 2 {
+        coordination_score = coordination_score.saturating_add(30);
+    }
+
+    let manipulation_detected = coordination_score >= sensitivity;
+    (manipulation_detected, coordination_score.min(100), affected_count.min(255))
+}
+
+// Vote buying pattern detection
+fn detect_vote_buying(patterns: &[VotePattern], sensitivity: u8) -> (bool, u8, u8) {
+    let mut buying_score = 0u8;
+    let mut affected_count = 0u8;
+
+    for pattern in patterns {
+        // Look for sudden reputation changes before votes
+        if let Some(reputation_anomaly) = detect_reputation_anomalies(&pattern.reputation_scores) {
+            buying_score = buying_score.saturating_add(25);
+            affected_count = affected_count.saturating_add(1);
+        }
+
+        // Look for confidence level manipulation
+        if detect_artificial_confidence_boosting(&pattern.confidence_levels) {
+            buying_score = buying_score.saturating_add(20);
+        }
+
+        // Look for vote pattern inconsistency with historical behavior
+        if detect_vote_pattern_inconsistency(pattern) {
+            buying_score = buying_score.saturating_add(15);
+        }
+    }
+
+    let manipulation_detected = buying_score >= sensitivity;
+    (manipulation_detected, buying_score.min(100), affected_count)
+}
+
+// Sybil attack detection
+fn detect_sybil_attack(patterns: &[VotePattern], sensitivity: u8) -> (bool, u8, u8) {
+    let mut sybil_score = 0u8;
+    let mut affected_count = 0u8;
+
+    // Check for similar address patterns
+    let mut address_similarities: HashMap<[u8; 8], Vec<usize>> = HashMap::new();
+
+    for (idx, pattern) in patterns.iter().enumerate() {
+        let addr_bytes = pattern.oracle_pubkey.as_bytes();
+        let pattern_key = [
+            addr_bytes[0], addr_bytes[1], addr_bytes[2], addr_bytes[3],
+            addr_bytes[28], addr_bytes[29], addr_bytes[30], addr_bytes[31],
+        ];
+
+        address_similarities.entry(pattern_key).or_insert_with(Vec::new).push(idx);
+    }
+
+    // Flag clusters of similar addresses
+    for (_, similar_oracles) in address_similarities {
+        if similar_oracles.len() > 2 {
+            sybil_score = sybil_score.saturating_add(30);
+            affected_count = affected_count.saturating_add(similar_oracles.len() as u8);
+        }
+    }
+
+    // Check for identical voting patterns
+    let identical_pattern_count = count_identical_voting_patterns(patterns);
+    if identical_pattern_count > 1 {
+        sybil_score = sybil_score.saturating_add(40);
+    }
+
+    // Check for simultaneous registration patterns
+    if detect_simultaneous_registration_patterns(patterns) {
+        sybil_score = sybil_score.saturating_add(25);
+    }
+
+    let manipulation_detected = sybil_score >= sensitivity;
+    (manipulation_detected, sybil_score.min(100), affected_count)
+}
+
+// Evidence copying detection
+fn detect_evidence_copying(patterns: &[VotePattern], sensitivity: u8) -> (bool, u8, u8) {
+    let mut copying_score = 0u8;
+    let mut affected_count = 0u8;
+
+    // Compare evidence hashes for similarity
+    for i in 0..patterns.len() {
+        for j in (i + 1)..patterns.len() {
+            let similarity = calculate_evidence_similarity(
+                &patterns[i].evidence_hashes,
+                &patterns[j].evidence_hashes
+            );
+
+            if similarity > 80 { // 80% similarity threshold
+                copying_score = copying_score.saturating_add(25);
+                affected_count = affected_count.saturating_add(1);
+            }
+        }
+    }
+
+    // Check for sequential evidence submission
+    if detect_sequential_evidence_patterns(patterns) {
+        copying_score = copying_score.saturating_add(35);
+    }
+
+    let manipulation_detected = copying_score >= sensitivity;
+    (manipulation_detected, copying_score.min(100), affected_count)
+}
+
+// Whale influence detection
+fn detect_whale_influence(patterns: &[VotePattern], sensitivity: u8) -> (bool, u8, u8) {
+    let mut whale_score = 0u8;
+    let mut affected_count = 0u8;
+
+    // Identify high-reputation oracles (potential whales)
+    let mut high_rep_oracles = Vec::new();
+    for (idx, pattern) in patterns.iter().enumerate() {
+        if let Some(&latest_rep) = pattern.reputation_scores.last() {
+            if latest_rep > 900 { // Top 10% reputation
+                high_rep_oracles.push(idx);
+            }
+        }
+    }
+
+    // Check if high-reputation oracles are coordinating
+    if high_rep_oracles.len() > 1 {
+        let coordination_detected = check_whale_coordination(&high_rep_oracles, patterns);
+        if coordination_detected {
+            whale_score = whale_score.saturating_add(50);
+            affected_count = high_rep_oracles.len() as u8;
+        }
+    }
+
+    // Check for reputation-based vote influencing
+    if detect_reputation_based_influencing(patterns) {
+        whale_score = whale_score.saturating_add(30);
+    }
+
+    let manipulation_detected = whale_score >= sensitivity;
+    (manipulation_detected, whale_score.min(100), affected_count)
+}
+
+// Helper functions for pattern analysis
+
+fn count_timing_clusters(timestamps: &[(u128, usize)], threshold_seconds: u64) -> usize {
+    let mut cluster_count = 0;
+    let mut in_cluster = false;
+
+    for i in 1..timestamps.len() {
+        let time_diff = timestamps[i].0 - timestamps[i-1].0;
+        if time_diff <= threshold_seconds as u128 {
+            if !in_cluster {
+                cluster_count += 1;
+                in_cluster = true;
+            }
+        } else {
+            in_cluster = false;
+        }
+    }
+
+    cluster_count
+}
+
+fn detect_reputation_anomalies(reputation_scores: &[u16]) -> Option<u16> {
+    if reputation_scores.len() < 2 {
+        return None;
+    }
+
+    let avg_reputation = reputation_scores.iter().sum::<u16>() / reputation_scores.len() as u16;
+    let last_reputation = reputation_scores[reputation_scores.len() - 1];
+
+    // Flag sudden reputation increases
+    if last_reputation > avg_reputation + 200 {
+        Some(last_reputation - avg_reputation)
+    } else {
+        None
+    }
+}
+
+fn detect_artificial_confidence_boosting(confidence_levels: &[u8]) -> bool {
+    if confidence_levels.len() < 3 {
+        return false;
+    }
+
+    // Check for unnatural confidence level progression
+    let mut increasing_streak = 0;
+    for i in 1..confidence_levels.len() {
+        if confidence_levels[i] > confidence_levels[i-1] {
+            increasing_streak += 1;
+        } else {
+            increasing_streak = 0;
+        }
+
+        if increasing_streak >= 3 {
+            return true;
+        }
+    }
+
+    false
+}
+
+fn detect_vote_pattern_inconsistency(pattern: &VotePattern) -> bool {
+    // Simplified inconsistency detection
+    // In production, this would analyze historical voting patterns
+    pattern.vote_timestamps.len() > 5 && pattern.confidence_levels.iter().all(|&c| c > 90)
+}
+
+fn count_identical_voting_patterns(patterns: &[VotePattern]) -> usize {
+    let mut identical_count = 0;
+
+    for i in 0..patterns.len() {
+        for j in (i + 1)..patterns.len() {
+            if voting_patterns_identical(&patterns[i], &patterns[j]) {
+                identical_count += 1;
+            }
+        }
+    }
+
+    identical_count
+}
+
+fn voting_patterns_identical(pattern1: &VotePattern, pattern2: &VotePattern) -> bool {
+    // Simplified pattern comparison
+    pattern1.confidence_levels == pattern2.confidence_levels &&
+    pattern1.vote_timestamps.len() == pattern2.vote_timestamps.len()
+}
+
+fn detect_simultaneous_registration_patterns(patterns: &[VotePattern]) -> bool {
+    // Check if multiple oracles started voting around the same time
+    if patterns.len() < 3 {
+        return false;
+    }
+
+    let first_votes: Vec<u128> = patterns.iter()
+        .filter_map(|p| p.vote_timestamps.first())
+        .copied()
+        .collect();
+
+    if first_votes.len() < 3 {
+        return false;
+    }
+
+    let mut sorted_first_votes = first_votes.clone();
+    sorted_first_votes.sort();
+
+    // Check if first votes are within 1 hour of each other
+    let time_span = sorted_first_votes.last().unwrap() - sorted_first_votes.first().unwrap();
+    time_span <= 3600 // 1 hour
+}
+
+fn calculate_evidence_similarity(evidence1: &[Vec<u8>], evidence2: &[Vec<u8>]) -> u8 {
+    if evidence1.is_empty() || evidence2.is_empty() {
+        return 0;
+    }
+
+    let mut matches = 0;
+    let total_comparisons = evidence1.len().min(evidence2.len());
+
+    for i in 0..total_comparisons {
+        if evidence1[i] == evidence2[i] {
+            matches += 1;
+        }
+    }
+
+    ((matches * 100) / total_comparisons) as u8
+}
+
+fn detect_sequential_evidence_patterns(patterns: &[VotePattern]) -> bool {
+    // Check if evidence hashes follow sequential patterns
+    for pattern in patterns {
+        if pattern.evidence_hashes.len() >= 3 {
+            let mut sequential = true;
+            for i in 1..pattern.evidence_hashes.len().min(3) {
+                if pattern.evidence_hashes[i] != pattern.evidence_hashes[i-1] {
+                    sequential = false;
+                    break;
+                }
+            }
+            if sequential {
+                return true;
+            }
+        }
+    }
+    false
+}
+
+fn check_whale_coordination(whale_indices: &[usize], patterns: &[VotePattern]) -> bool {
+    // Check if whales are voting at similar times
+    let mut whale_timestamps = Vec::new();
+    for &idx in whale_indices {
+        whale_timestamps.extend(&patterns[idx].vote_timestamps);
+    }
+
+    whale_timestamps.sort();
+
+    // Check for clustering
+    for i in 1..whale_timestamps.len() {
+        if whale_timestamps[i] - whale_timestamps[i-1] <= 300 { // 5 minutes
+            return true;
+        }
+    }
+
+    false
+}
+
+fn detect_reputation_based_influencing(patterns: &[VotePattern]) -> bool {
+    // Simplified reputation influence detection
+    let high_rep_count = patterns.iter()
+        .filter(|p| p.reputation_scores.last().unwrap_or(&0) > &900)
+        .count();
+
+    high_rep_count > 1 && patterns.len() - high_rep_count < 3
+}
+
+// Load vote patterns for analysis
+fn load_vote_patterns(market_id: u64, window_hours: u16, current_time: u128) -> Vec<VotePattern> {
+    // In production, this would load from encrypted storage
+    // For simulation, return mock patterns
+    vec![
+        VotePattern {
+            oracle_pubkey: ArcisPubkey::new([1; 32]),
+            vote_timestamps: vec![current_time - 3600, current_time - 1800],
+            confidence_levels: vec![85, 87],
+            vote_outcomes: vec![encrypt_bool(true), encrypt_bool(true)],
+            reputation_scores: vec![920, 925],
+            evidence_hashes: vec![vec![1, 2, 3], vec![1, 2, 4]],
+        },
+        VotePattern {
+            oracle_pubkey: ArcisPubkey::new([2; 32]),
+            vote_timestamps: vec![current_time - 3580, current_time - 1790],
+            confidence_levels: vec![88, 89],
+            vote_outcomes: vec![encrypt_bool(true), encrypt_bool(true)],
+            reputation_scores: vec![880, 885],
+            evidence_hashes: vec![vec![1, 2, 3], vec![1, 2, 3]],
+        },
+    ]
+}
+
+fn encrypt_bool(value: bool) -> EncryptedBool {
+    EncryptedBool::new([if value { 1 } else { 0 }; 32])
+}
+
+// Main manipulation detection entry point
+#[arcium_computation]
+pub fn detect_manipulation_patterns(input: ManipulationDetectionInput) -> Result<Vec<u8>, String> {
+    // Load vote patterns for analysis
+    let patterns = load_vote_patterns(
+        input.market_id,
+        input.analysis_window_hours,
+        input.timestamp
+    );
+
+    let mut overall_manipulation_score = 0u8;
+    let mut pattern_flags = 0u8;
+    let mut max_affected_validators = 0u8;
+
+    // Run all manipulation detection algorithms
+    let (timing_detected, timing_score, timing_affected) = detect_coordinated_timing(&patterns, input.sensitivity_threshold);
+    if timing_detected {
+        overall_manipulation_score = overall_manipulation_score.saturating_add(timing_score / 4);
+        pattern_flags |= PATTERN_COORDINATED_TIMING;
+        max_affected_validators = max_affected_validators.max(timing_affected);
+    }
+
+    let (buying_detected, buying_score, buying_affected) = detect_vote_buying(&patterns, input.sensitivity_threshold);
+    if buying_detected {
+        overall_manipulation_score = overall_manipulation_score.saturating_add(buying_score / 4);
+        pattern_flags |= PATTERN_VOTE_BUYING;
+        max_affected_validators = max_affected_validators.max(buying_affected);
+    }
+
+    let (sybil_detected, sybil_score, sybil_affected) = detect_sybil_attack(&patterns, input.sensitivity_threshold);
+    if sybil_detected {
+        overall_manipulation_score = overall_manipulation_score.saturating_add(sybil_score / 4);
+        pattern_flags |= PATTERN_SYBIL_ATTACK;
+        max_affected_validators = max_affected_validators.max(sybil_affected);
+    }
+
+    let (copying_detected, copying_score, copying_affected) = detect_evidence_copying(&patterns, input.sensitivity_threshold);
+    if copying_detected {
+        overall_manipulation_score = overall_manipulation_score.saturating_add(copying_score / 4);
+        pattern_flags |= PATTERN_EVIDENCE_COPYING;
+        max_affected_validators = max_affected_validators.max(copying_affected);
+    }
+
+    let (whale_detected, whale_score, whale_affected) = detect_whale_influence(&patterns, input.sensitivity_threshold);
+    if whale_detected {
+        overall_manipulation_score = overall_manipulation_score.saturating_add(whale_score / 4);
+        pattern_flags |= PATTERN_WHALE_INFLUENCE;
+        max_affected_validators = max_affected_validators.max(whale_affected);
+    }
+
+    // Determine final manipulation detection result
+    let manipulation_detected = overall_manipulation_score >= input.sensitivity_threshold;
+
+    // Serialize output
+    let mut output = Vec::new();
+    output.push(if manipulation_detected { 1 } else { 0 });
+    output.push(overall_manipulation_score.min(100));
+    output.push(max_affected_validators);
+    output.push(pattern_flags);
+
+    Ok(output)
+}

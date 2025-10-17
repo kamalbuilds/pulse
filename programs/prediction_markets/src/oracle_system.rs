@@ -244,11 +244,11 @@ impl OracleResolution {
 
         // If disputed, require validator consensus
         if !disputes.is_empty() {
-            return Err(error!(ErrorCode::RequiresValidatorResolution));
+            return Err(error!(OracleErrorCode::RequiresValidatorResolution));
         }
 
         // Still in challenge period
-        Err(error!(ErrorCode::ChallengePeriodActive))
+        Err(error!(OracleErrorCode::ChallengePeriodActive))
     }
 
     // Chainlink-style price aggregation
@@ -259,7 +259,7 @@ impl OracleResolution {
     ) -> Result<bool> {
         require!(
             price_feeds.len() >= price_oracle.minimum_sources as usize,
-            ErrorCode::InsufficientPriceSources
+            OracleErrorCode::InsufficientPriceSources
         );
 
         let aggregated_price = match price_oracle.aggregation_method {
@@ -301,7 +301,7 @@ impl OracleResolution {
         let participation_rate = total_vote_weight as f64 / total_eligible_weight as f64;
         require!(
             participation_rate >= min_participation,
-            ErrorCode::InsufficientValidatorParticipation
+            OracleErrorCode::InsufficientValidatorParticipation
         );
 
         let yes_weight: u64 = votes
@@ -324,7 +324,7 @@ impl OracleResolution {
         } else if no_weight >= threshold {
             Ok(false)
         } else {
-            Err(error!(ErrorCode::NoConsensusReached))
+            Err(error!(OracleErrorCode::NoConsensusReached))
         }
     }
 

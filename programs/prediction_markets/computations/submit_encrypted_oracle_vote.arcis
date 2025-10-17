@@ -1,0 +1,276 @@
+// Arcium MPC computation for encrypted oracle vote submission
+// This computation validates oracle votes while preserving privacy and detecting collusion
+
+use arcium_types::*;
+use std::collections::HashMap;
+
+// Input parameters for oracle vote validation
+struct OracleVoteInput {
+    oracle_pubkey: ArcisPubkey,        // Oracle's public key
+    encrypted_vote: EncryptedBool,     // Encrypted vote (true/false)
+    confidence_level: u8,              // Confidence level (0-100)
+    market_id: u64,                    // Market identifier
+    timestamp: u128,                   // Vote timestamp
+    evidence_hash: Vec<u8>,            // Hash of supporting evidence
+    anti_collusion_proof: Vec<u8>,     // Anti-collusion proof data
+}
+
+// Output structure for oracle vote validation
+struct OracleVoteOutput {
+    is_valid: bool,                    // Whether vote is valid
+    anti_collusion_score: u8,          // Anti-collusion score (0-100)
+    weighted_confidence: u16,          // Weighted confidence based on oracle reputation
+    manipulation_flags: u8,            // Detected manipulation patterns
+}
+
+// Anti-collusion detection algorithms
+fn detect_collusion_patterns(
+    oracle_pubkey: &ArcisPubkey,
+    vote: bool,
+    confidence: u8,
+    timestamp: u128,
+    evidence_hash: &[u8],
+    historical_data: &HashMap<ArcisPubkey, Vec<(bool, u8, u128)>>
+) -> u8 {
+    let mut collusion_score = 100; // Start with max score (no collusion)
+
+    // Pattern 1: Identical vote timing across multiple oracles
+    if let Some(recent_votes) = get_recent_votes_in_timeframe(timestamp, 300) { // 5 min window
+        let simultaneous_votes = recent_votes.iter()
+            .filter(|(_, vote_time)| (*vote_time as i128 - timestamp as i128).abs() < 60) // 1 min threshold
+            .count();
+
+        if simultaneous_votes > 3 {
+            collusion_score = collusion_score.saturating_sub(25);
+        }
+    }
+
+    // Pattern 2: Identical confidence levels across oracles
+    if let Some(confidence_distribution) = get_confidence_distribution_for_market() {
+        let exact_matches = confidence_distribution.get(&confidence).unwrap_or(&0);
+        if *exact_matches > 2 {
+            collusion_score = collusion_score.saturating_sub(20);
+        }
+    }
+
+    // Pattern 3: Oracle reputation vs confidence mismatch
+    let oracle_reputation = get_oracle_reputation(oracle_pubkey);
+    let expected_confidence_range = calculate_expected_confidence_range(oracle_reputation);
+
+    if confidence < expected_confidence_range.0 || confidence > expected_confidence_range.1 {
+        collusion_score = collusion_score.saturating_sub(15);
+    }
+
+    // Pattern 4: Evidence hash similarity
+    if let Some(similar_evidence_count) = count_similar_evidence_hashes(evidence_hash) {
+        if similar_evidence_count > 1 {
+            collusion_score = collusion_score.saturating_sub(30);
+        }
+    }
+
+    // Pattern 5: Historical voting pattern deviation
+    if let Some(oracle_history) = historical_data.get(oracle_pubkey) {
+        let typical_confidence = calculate_typical_confidence(oracle_history);
+        let deviation = (confidence as i16 - typical_confidence as i16).abs();
+
+        if deviation > 40 {
+            collusion_score = collusion_score.saturating_sub(10);
+        }
+    }
+
+    collusion_score
+}
+
+// Vote validation with privacy preservation
+fn validate_oracle_vote(
+    oracle_pubkey: &ArcisPubkey,
+    encrypted_vote: &EncryptedBool,
+    confidence_level: u8,
+    market_id: u64,
+    timestamp: u128,
+    evidence_hash: &[u8],
+    anti_collusion_proof: &[u8]
+) -> OracleVoteOutput {
+    // Basic validation checks
+    if confidence_level > 100 {
+        return OracleVoteOutput {
+            is_valid: false,
+            anti_collusion_score: 0,
+            weighted_confidence: 0,
+            manipulation_flags: 0b00000001, // Invalid confidence flag
+        };
+    }
+
+    // Verify oracle is registered and eligible
+    if !is_oracle_registered(oracle_pubkey) {
+        return OracleVoteOutput {
+            is_valid: false,
+            anti_collusion_score: 0,
+            weighted_confidence: 0,
+            manipulation_flags: 0b00000010, // Unregistered oracle flag
+        };
+    }
+
+    // Decrypt vote in secure environment
+    let decrypted_vote = decrypt_bool(encrypted_vote);
+
+    // Load historical voting data for collusion detection
+    let historical_data = load_historical_voting_data();
+
+    // Perform anti-collusion analysis
+    let anti_collusion_score = detect_collusion_patterns(
+        oracle_pubkey,
+        decrypted_vote,
+        confidence_level,
+        timestamp,
+        evidence_hash,
+        &historical_data
+    );
+
+    // Calculate weighted confidence based on oracle reputation
+    let oracle_reputation = get_oracle_reputation(oracle_pubkey);
+    let reputation_multiplier = (oracle_reputation as f64 / 100.0).clamp(0.5, 2.0);
+    let weighted_confidence = ((confidence_level as f64 * reputation_multiplier) as u16).min(100);
+
+    // Detect manipulation patterns
+    let mut manipulation_flags = 0u8;
+
+    // Check for rapid vote changes
+    if is_rapid_vote_change_detected(oracle_pubkey, timestamp) {
+        manipulation_flags |= 0b00000100;
+    }
+
+    // Check for vote buying patterns
+    if is_vote_buying_pattern_detected(oracle_pubkey, market_id) {
+        manipulation_flags |= 0b00001000;
+    }
+
+    // Check for coordinated voting
+    if is_coordinated_voting_detected(timestamp, evidence_hash) {
+        manipulation_flags |= 0b00010000;
+    }
+
+    // Verify anti-collusion proof
+    if !verify_anti_collusion_proof(anti_collusion_proof, oracle_pubkey, market_id) {
+        manipulation_flags |= 0b00100000;
+        return OracleVoteOutput {
+            is_valid: false,
+            anti_collusion_score: 0,
+            weighted_confidence: 0,
+            manipulation_flags,
+        };
+    }
+
+    OracleVoteOutput {
+        is_valid: true,
+        anti_collusion_score,
+        weighted_confidence,
+        manipulation_flags,
+    }
+}
+
+// Helper functions for oracle reputation and historical data
+fn get_oracle_reputation(oracle_pubkey: &ArcisPubkey) -> u8 {
+    // In production, this would query the oracle's historical accuracy
+    // For now, simulate based on pubkey hash
+    let hash = oracle_pubkey.as_bytes();
+    let reputation_seed = hash[0] as u16 + hash[31] as u16;
+    ((reputation_seed % 50) + 50) as u8 // 50-100 range
+}
+
+fn is_oracle_registered(oracle_pubkey: &ArcisPubkey) -> bool {
+    // In production, this would check the oracle registry
+    // For simulation, assume all oracles are registered
+    true
+}
+
+fn get_recent_votes_in_timeframe(timestamp: u128, window_seconds: u64) -> Option<Vec<(ArcisPubkey, u128)>> {
+    // In production, this would query recent votes from the network
+    // For simulation, return empty
+    Some(vec![])
+}
+
+fn get_confidence_distribution_for_market() -> Option<HashMap<u8, u32>> {
+    // In production, this would analyze confidence distribution patterns
+    // For simulation, return empty
+    Some(HashMap::new())
+}
+
+fn calculate_expected_confidence_range(reputation: u8) -> (u8, u8) {
+    // Higher reputation oracles should have more consistent confidence levels
+    let variance = 100 - reputation; // Higher reputation = lower variance
+    let base_confidence = 60 + (reputation / 3); // 60-93 range
+
+    (
+        base_confidence.saturating_sub(variance / 4),
+        (base_confidence + variance / 4).min(100)
+    )
+}
+
+fn count_similar_evidence_hashes(evidence_hash: &[u8]) -> Option<u32> {
+    // In production, this would count similar evidence hashes
+    // For simulation, return 0
+    Some(0)
+}
+
+fn calculate_typical_confidence(history: &[(bool, u8, u128)]) -> u8 {
+    if history.is_empty() {
+        return 75; // Default confidence
+    }
+
+    let sum: u32 = history.iter().map(|(_, conf, _)| *conf as u32).sum();
+    (sum / history.len() as u32) as u8
+}
+
+fn load_historical_voting_data() -> HashMap<ArcisPubkey, Vec<(bool, u8, u128)>> {
+    // In production, this would load from secure storage
+    // For simulation, return empty
+    HashMap::new()
+}
+
+fn is_rapid_vote_change_detected(oracle_pubkey: &ArcisPubkey, timestamp: u128) -> bool {
+    // Check if oracle is changing votes too rapidly
+    // For simulation, return false
+    false
+}
+
+fn is_vote_buying_pattern_detected(oracle_pubkey: &ArcisPubkey, market_id: u64) -> bool {
+    // Check for vote buying indicators
+    // For simulation, return false
+    false
+}
+
+fn is_coordinated_voting_detected(timestamp: u128, evidence_hash: &[u8]) -> bool {
+    // Check for coordinated voting patterns
+    // For simulation, return false
+    false
+}
+
+fn verify_anti_collusion_proof(proof: &[u8], oracle_pubkey: &ArcisPubkey, market_id: u64) -> bool {
+    // Verify zero-knowledge proof of independence
+    // For simulation, check proof length
+    proof.len() >= 32
+}
+
+// Main computation entry point
+#[arcium_computation]
+pub fn submit_encrypted_oracle_vote(input: OracleVoteInput) -> Result<Vec<u8>, String> {
+    let result = validate_oracle_vote(
+        &input.oracle_pubkey,
+        &input.encrypted_vote,
+        input.confidence_level,
+        input.market_id,
+        input.timestamp,
+        &input.evidence_hash,
+        &input.anti_collusion_proof
+    );
+
+    // Serialize output for return to Solana program
+    let mut output = Vec::new();
+    output.push(if result.is_valid { 1 } else { 0 });
+    output.push(result.anti_collusion_score);
+    output.extend_from_slice(&result.weighted_confidence.to_le_bytes());
+    output.push(result.manipulation_flags);
+
+    Ok(output)
+}
