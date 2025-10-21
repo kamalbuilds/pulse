@@ -8,10 +8,9 @@ mod circuits {
     // PREDICTION MARKETS ENCRYPTED COMPUTATION CIRCUITS
     // =====================================================================
 
-    // Vote data structure for private voting
-    #[derive(ArcisType)]
+    // Vote data structure for private voting - Remove #[derive(ArcisType)]
     pub struct VoteData {
-        pub voter: ArcisPubkey,
+        pub voter: [u8; 32],
         pub market_id: u64,
         pub vote_choice: u8, // 0 = No, 1 = Yes, 2 = Skip
         pub stake_amount: u64,
@@ -21,8 +20,7 @@ mod circuits {
         pub nonce: u128, // For replay protection
     }
 
-    // Market voting state for aggregation
-    #[derive(ArcisType)]
+    // Market voting state for aggregation - Remove #[derive(ArcisType)]
     pub struct MarketVotingState {
         pub market_id: u64,
         pub total_yes_votes: u32,
@@ -37,10 +35,9 @@ mod circuits {
         pub last_updated: u64,
     }
 
-    // Payout calculation data
-    #[derive(ArcisType)]
+    // Payout calculation data - Remove #[derive(ArcisType)]
     pub struct PayoutData {
-        pub user: ArcisPubkey,
+        pub user: [u8; 32],
         pub market_id: u64,
         pub user_stake: u64,
         pub user_vote: u8,
@@ -79,7 +76,6 @@ mod circuits {
         }
 
         // Check timestamp is reasonable (not too far in past/future)
-        // Note: In real implementation, you'd compare with current time
         if vote.timestamp == 0 {
             is_valid = 0;
         }
@@ -97,52 +93,43 @@ mod circuits {
         vote_ctxt.owner.from_arcis(is_valid)
     }
 
-    // Aggregate votes while maintaining privacy
+    // Aggregate single vote into market state
     #[instruction]
     pub fn aggregate_market_votes(
-        votes_ctxt: Enc<Shared, [VoteData; 100]>, // Batch of up to 100 votes
-        vote_count_ctxt: Enc<Shared, u8>,
+        vote_ctxt: Enc<Shared, VoteData>,
         current_state_ctxt: Enc<Mxe, MarketVotingState>
     ) -> Enc<Shared, MarketVotingState> {
-        let votes = votes_ctxt.to_arcis();
-        let vote_count = vote_count_ctxt.to_arcis();
+        let vote = vote_ctxt.to_arcis();
         let mut state = current_state_ctxt.to_arcis();
 
-        // Process each vote in the batch
-        for i in 0..100 {
-            if i < vote_count {
-                let vote = &votes[i as usize];
-
-                // Validate and aggregate vote
-                if vote.vote_choice <= 2 && vote.stake_amount > 0 {
-                    // Update vote counts
-                    if vote.vote_choice == 1 {
-                        state.total_yes_votes += 1;
-                        state.total_yes_stake += vote.stake_amount;
-                        state.conviction_weighted_yes += vote.conviction_score as u64 * vote.stake_amount;
-                    } else if vote.vote_choice == 0 {
-                        state.total_no_votes += 1;
-                        state.total_no_stake += vote.stake_amount;
-                        state.conviction_weighted_no += vote.conviction_score as u64 * vote.stake_amount;
-                    } else if vote.vote_choice == 2 {
-                        state.total_skip_votes += 1;
-                        // Skip votes don't contribute to stake totals
-                    }
-
-                    // Update aggregated probability (weighted by stake)
-                    if vote.vote_choice != 2 { // Only count Yes/No votes for probability
-                        state.weighted_probability_sum += vote.stake_amount * vote.predicted_probability as u64;
-                    }
-
-                    state.total_participants += 1;
-                }
+        // Validate and aggregate single vote
+        if vote.vote_choice <= 2 && vote.stake_amount > 0 {
+            // Update vote counts
+            if vote.vote_choice == 1 {
+                state.total_yes_votes += 1;
+                state.total_yes_stake += vote.stake_amount;
+                state.conviction_weighted_yes += vote.conviction_score as u64 * vote.stake_amount;
+            } else if vote.vote_choice == 0 {
+                state.total_no_votes += 1;
+                state.total_no_stake += vote.stake_amount;
+                state.conviction_weighted_no += vote.conviction_score as u64 * vote.stake_amount;
+            } else if vote.vote_choice == 2 {
+                state.total_skip_votes += 1;
+                // Skip votes don't contribute to stake totals
             }
+
+            // Update aggregated probability (weighted by stake)
+            if vote.vote_choice != 2 { // Only count Yes/No votes for probability
+                state.weighted_probability_sum += vote.stake_amount * vote.predicted_probability as u64;
+            }
+
+            state.total_participants += 1;
         }
 
         // Update last updated timestamp
         state.last_updated = state.last_updated + 1; // Simplified timestamp increment
 
-        votes_ctxt.owner.from_arcis(state)
+        vote_ctxt.owner.from_arcis(state)
     }
 
     // Calculate individual payout while preserving privacy
@@ -167,7 +154,6 @@ mod circuits {
             final_payout = payout_data.user_stake + losing_stake_share;
 
             // Accuracy bonus: Reward for prediction confidence matching outcome
-            // Higher probability prediction gets bigger bonus if correct
             let accuracy_factor = if payout_data.market_outcome == 1 {
                 payout_data.user_probability as u64 // Predicted Yes correctly
             } else if payout_data.market_outcome == 0 {
@@ -191,30 +177,19 @@ mod circuits {
         payout_ctxt.owner.from_arcis(final_payout)
     }
 
-    // Market odds calculation result
-    #[derive(ArcisType)]
-    pub struct MarketOdds {
-        pub yes_probability: u8,
-        pub no_probability: u8,
-        pub total_participants: u32,
-        pub high_confidence: bool,
-        pub average_conviction: u8,
-        pub liquidity_level: u8,
-    }
-
-    // Privacy-preserving market maker pricing
+    // Simple market odds calculation without complex byte packing
     #[instruction]
     pub fn calculate_market_odds(
         state_ctxt: Enc<Shared, MarketVotingState>
-    ) -> Enc<Shared, MarketOdds> {
+    ) -> Enc<Shared, (u8, u8, u32, bool)> { // (yes_prob, no_prob, participants, high_confidence)
         let state = state_ctxt.to_arcis();
 
         let total_stake = state.total_yes_stake + state.total_no_stake;
 
-        let odds = if total_stake > 0 {
+        let (yes_probability, no_probability, high_confidence) = if total_stake > 0 {
             // Calculate implied probabilities based on stake distribution
-            let yes_probability = (state.total_yes_stake * 100) / total_stake;
-            let no_probability = (state.total_no_stake * 100) / total_stake;
+            let yes_prob = (state.total_yes_stake * 100) / total_stake;
+            let no_prob = (state.total_no_stake * 100) / total_stake;
 
             // Apply liquidity adjustments and market maker spread
             let liquidity_factor = if total_stake > 10000 { // High liquidity
@@ -225,99 +200,60 @@ mod circuits {
                 85 // 15% spread
             };
 
-            let adjusted_yes = (yes_probability * liquidity_factor) / 100;
-            let adjusted_no = (no_probability * liquidity_factor) / 100;
+            let adjusted_yes = (yes_prob * liquidity_factor) / 100;
+            let adjusted_no = (no_prob * liquidity_factor) / 100;
 
-            MarketOdds {
-                yes_probability: adjusted_yes as u8,
-                no_probability: adjusted_no as u8,
-                total_participants: state.total_participants,
-                high_confidence: total_stake > 1000,
-                average_conviction: ((state.conviction_weighted_yes + state.conviction_weighted_no) / total_stake.max(1)) as u8,
-                liquidity_level: if total_stake > 10000 { 3 } else if total_stake > 1000 { 2 } else { 1 },
-            }
+            (adjusted_yes as u8, adjusted_no as u8, total_stake > 1000)
         } else {
             // No stake yet - default to 50/50
-            MarketOdds {
-                yes_probability: 50,
-                no_probability: 50,
-                total_participants: 0,
-                high_confidence: false,
-                average_conviction: 0,
-                liquidity_level: 0,
-            }
+            (50u8, 50u8, false)
         };
 
-        state_ctxt.owner.from_arcis(odds)
+        state_ctxt.owner.from_arcis((yes_probability, no_probability, state.total_participants, high_confidence))
     }
 
-    // Anti-manipulation detection
+    // Anti-manipulation detection between two votes
     #[instruction]
     pub fn detect_manipulation(
-        votes_ctxt: Enc<Shared, [VoteData; 50]>, // Smaller batch for analysis
-        vote_count_ctxt: Enc<Shared, u8>
+        vote1_ctxt: Enc<Shared, VoteData>,
+        vote2_ctxt: Enc<Shared, VoteData>
     ) -> Enc<Shared, u8> {
-        let votes = votes_ctxt.to_arcis();
-        let vote_count = vote_count_ctxt.to_arcis();
+        let vote1 = vote1_ctxt.to_arcis();
+        let vote2 = vote2_ctxt.to_arcis();
 
-        let mut manipulation_score = 0u8;
         let mut suspicious_patterns = 0u8;
 
-        // Check for coordinated voting patterns
-        let mut same_timestamp_count = 0u8;
-        let mut same_probability_count = 0u8;
-        let mut same_conviction_count = 0u8;
+        // Check for suspicious timing between two votes
+        let time_diff = if vote1.timestamp > vote2.timestamp {
+            vote1.timestamp - vote2.timestamp
+        } else {
+            vote2.timestamp - vote1.timestamp
+        };
 
-        for i in 0..50 {
-            if i < vote_count {
-                let vote1 = &votes[i as usize];
-
-                // Compare with other votes for patterns
-                for j in (i + 1)..50 {
-                    if j < vote_count {
-                        let vote2 = &votes[j as usize];
-
-                        // Check for suspicious timing
-                        let time_diff = if vote1.timestamp > vote2.timestamp {
-                            vote1.timestamp - vote2.timestamp
-                        } else {
-                            vote2.timestamp - vote1.timestamp
-                        };
-
-                        if time_diff < 5 { // Votes within 5 seconds
-                            same_timestamp_count += 1;
-                        }
-
-                        // Check for identical probabilities (suspicious for independent voters)
-                        if vote1.predicted_probability == vote2.predicted_probability {
-                            same_probability_count += 1;
-                        }
-
-                        // Check for identical conviction scores
-                        if vote1.conviction_score == vote2.conviction_score {
-                            same_conviction_count += 1;
-                        }
-                    }
-                }
-            }
+        if time_diff < 5 { // Votes within 5 seconds
+            suspicious_patterns += 1;
         }
 
-        // Score manipulation risk
-        if same_timestamp_count > vote_count / 4 {
-            suspicious_patterns += 1; // Too many simultaneous votes
+        // Check for identical probabilities (suspicious for independent voters)
+        if vote1.predicted_probability == vote2.predicted_probability {
+            suspicious_patterns += 1;
         }
 
-        if same_probability_count > vote_count / 3 {
-            suspicious_patterns += 1; // Too many identical predictions
+        // Check for identical conviction scores
+        if vote1.conviction_score == vote2.conviction_score {
+            suspicious_patterns += 1;
         }
 
-        if same_conviction_count > vote_count / 3 {
-            suspicious_patterns += 1; // Too many identical conviction scores
+        // Check if votes are from same choice with similar patterns
+        if vote1.vote_choice == vote2.vote_choice
+            && vote1.stake_amount == vote2.stake_amount
+            && suspicious_patterns >= 2 {
+            suspicious_patterns += 1;
         }
 
         // Calculate final manipulation score (0-100)
-        manipulation_score = (suspicious_patterns * 33).min(100);
+        let manipulation_score = (suspicious_patterns * 25).min(100);
 
-        votes_ctxt.owner.from_arcis(manipulation_score)
+        vote1_ctxt.owner.from_arcis(manipulation_score)
     }
 }

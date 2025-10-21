@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { Market, VoteChoice } from '@/types/market';
 import ArciumPredictionMarketsClient, { ArciumUtils } from '@/lib/arciumClient';
+import HerdingDetection, { HerdingAnalysis } from '@/components/privacy/HerdingDetection';
 
 interface EncryptedVoteModalProps {
   isOpen: boolean;
@@ -42,6 +43,8 @@ export const EncryptedVoteModal: React.FC<EncryptedVoteModalProps> = ({
   const [confidence, setConfidence] = useState(75);
   const [probability, setProbability] = useState(voteChoice === VoteChoice.Yes ? 65 : 35);
   const [showPrivacyDetails, setShowPrivacyDetails] = useState(false);
+  const [showHerdingAnalysis, setShowHerdingAnalysis] = useState(false);
+  const [herdingAnalysis, setHerdingAnalysis] = useState<HerdingAnalysis | null>(null);
 
   // UI state
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -66,6 +69,15 @@ export const EncryptedVoteModal: React.FC<EncryptedVoteModalProps> = ({
       setSubmissionResult({
         success: false,
         message: 'Please connect your wallet first'
+      });
+      return;
+    }
+
+    // Check herding analysis if we have it
+    if (herdingAnalysis && herdingAnalysis.riskLevel === 'critical') {
+      setSubmissionResult({
+        success: false,
+        message: 'Vote blocked: Critical manipulation risk detected'
       });
       return;
     }
@@ -268,6 +280,36 @@ export const EncryptedVoteModal: React.FC<EncryptedVoteModalProps> = ({
                 <span>50/50</span>
                 <span>Very Likely</span>
               </div>
+            </div>
+
+            {/* Anti-Herding Analysis Toggle */}
+            <div className="space-y-3">
+              <button
+                onClick={() => setShowHerdingAnalysis(!showHerdingAnalysis)}
+                className="flex items-center space-x-2 text-sm text-zenith-400 hover:text-zenith-300 transition-colors"
+              >
+                <Shield className="w-4 h-4" />
+                <span>{showHerdingAnalysis ? 'Hide' : 'Show'} Anti-Herding Analysis</span>
+              </button>
+
+              <AnimatePresence>
+                {showHerdingAnalysis && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="overflow-hidden"
+                  >
+                    <HerdingDetection
+                      marketId={market.id}
+                      userConfidence={confidence}
+                      voteChoice={voteChoice === VoteChoice.Yes ? 'yes' : 'no'}
+                      onAnalysisComplete={setHerdingAnalysis}
+                      isVisible={showHerdingAnalysis}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             {/* Privacy Details Toggle */}

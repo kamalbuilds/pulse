@@ -1,0 +1,181 @@
+version: '3.8'
+
+services:
+  # Solana Test Validator
+  solana-validator:
+    image: solanalabs/solana:v1.18.18
+    container_name: solana-test-validator
+    command: >
+      bash -c "
+        solana-test-validator
+        --reset
+        --bind-address 0.0.0.0
+        --rpc-bind-address 0.0.0.0
+        --rpc-port 8899
+        --websocket-port 8900
+        --ledger /ledger
+        --log
+        --faucet-lamports 1000000000000
+        --faucet-sol 1000000000
+      "
+    ports:
+      - "8899:8899"   # RPC port
+      - "8900:8900"   # WebSocket port
+      - "9900:9900"   # Faucet port
+    volumes:
+      - solana_ledger:/ledger
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8899/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Redis for caching (if needed)
+  redis:
+    image: redis:7-alpine
+    container_name: zenithveil-redis-test
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  # PostgreSQL for storing test data
+  postgres:
+    image: postgres:15-alpine
+    container_name: zenithveil-postgres-test
+    environment:
+      POSTGRES_DB: zenithveil_test
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: test_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./tests/fixtures/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U test_user -d zenithveil_test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Frontend Application
+  frontend:
+    build:
+      context: ./app
+      dockerfile: Dockerfile.test
+    container_name: zenithveil-frontend-test
+    environment:
+      - NODE_ENV=test
+      - NEXT_PUBLIC_SOLANA_RPC_URL=http://solana-validator:8899
+      - NEXT_PUBLIC_PROGRAM_ID=7pPDQeV8khtG814YMxo41kgt8dJERZxfRkf9MbkUsJHr
+      - DATABASE_URL=postgresql://test_user:test_password@postgres:5432/zenithveil_test
+      - REDIS_URL=redis://redis:6379
+    ports:
+      - "3000:3000"
+    depends_on:
+      solana-validator:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./app:/app
+      - /app/node_modules
+    command: npm run dev
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Mock Arcium Network (for testing)
+  mock-arcium:
+    build:
+      context: ./tests/mocks
+      dockerfile: Dockerfile.arcium-mock
+    container_name: zenithveil-arcium-mock
+    environment:
+      - PORT=8080
+      - LOG_LEVEL=debug
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./tests/mocks/arcium-responses:/app/responses
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # Test Runner Service
+  test-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile.test-runner
+    container_name: zenithveil-test-runner
+    environment:
+      - SOLANA_RPC_URL=http://solana-validator:8899
+      - FRONTEND_URL=http://frontend:3000
+      - ARCIUM_MOCK_URL=http://mock-arcium:8080
+      - DATABASE_URL=postgresql://test_user:test_password@postgres:5432/zenithveil_test
+      - TEST_ENV=docker
+    depends_on:
+      solana-validator:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
+      mock-arcium:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    volumes:
+      - .:/workspace
+      - test_results:/workspace/test-results
+    working_dir: /workspace
+    command: tail -f /dev/null  # Keep container running for manual test execution
+
+  # Monitoring and Metrics
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: zenithveil-prometheus-test
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./tests/config/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: zenithveil-grafana-test
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./tests/config/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./tests/config/grafana/datasources:/etc/grafana/provisioning/datasources
+
+volumes:
+  solana_ledger:
+  postgres_data:
+  redis_data:
+  prometheus_data:
+  grafana_data:
+  test_results:
+
+networks:
+  default:
+    name: zenithveil-test-network

@@ -4,6 +4,8 @@ import React, { useState, useCallback } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { SwipeStack } from '@/components/swipe/SwipeStack';
 import { UserDashboard } from '@/components/dashboard/UserDashboard';
+import { SwipeStreak } from '@/components/gamification/SwipeStreak';
+import AchievementToast, { useAchievements } from '@/components/gamification/AchievementToast';
 import { Market } from '@/types/market';
 import { mockMarkets, generateRandomMarkets, mockUserStats } from '@/lib/mockData';
 import { TrendingUp, Zap, Users, Trophy } from 'lucide-react';
@@ -15,6 +17,14 @@ export default function HomePage() {
   const [userStats, setUserStats] = useState(mockUserStats);
   const [showDashboard, setShowDashboard] = useState(false);
 
+  // Achievement system
+  const {
+    currentAchievement,
+    showToast,
+    checkAchievements,
+    dismissToast
+  } = useAchievements();
+
   const handleSwipe = useCallback((
     direction: 'left' | 'right',
     market: Market,
@@ -25,17 +35,45 @@ export default function HomePage() {
     // In a real app, this would submit to blockchain/backend
     if (direction === 'right' && prediction) {
       // Update user stats for YES prediction
-      setUserStats(prev => ({
-        ...prev,
-        totalPredictions: prev.totalPredictions + 1,
-        totalVolume: prev.totalVolume + prediction.stakeAmount,
-      }));
+      setUserStats(prev => {
+        const newStats = {
+          ...prev,
+          totalPredictions: prev.totalPredictions + 1,
+          totalVolume: prev.totalVolume + prediction.stakeAmount,
+          currentStreak: prev.currentStreak + 1,
+        };
+
+        // Check for achievements
+        checkAchievements({
+          totalPredictions: newStats.totalPredictions,
+          accuracy: newStats.accuracy,
+          currentStreak: newStats.currentStreak,
+          totalVolume: newStats.totalVolume,
+          encryptedVotes: 25 // Mock encrypted vote count
+        });
+
+        return newStats;
+      });
     } else if (direction === 'left') {
       // Update user stats for NO prediction
-      setUserStats(prev => ({
-        ...prev,
-        totalPredictions: prev.totalPredictions + 1,
-      }));
+      setUserStats(prev => {
+        const newStats = {
+          ...prev,
+          totalPredictions: prev.totalPredictions + 1,
+          currentStreak: prev.currentStreak + 1,
+        };
+
+        // Check for achievements
+        checkAchievements({
+          totalPredictions: newStats.totalPredictions,
+          accuracy: newStats.accuracy,
+          currentStreak: newStats.currentStreak,
+          totalVolume: newStats.totalVolume,
+          encryptedVotes: 25 // Mock encrypted vote count
+        });
+
+        return newStats;
+      });
     }
   }, []);
 
@@ -151,6 +189,15 @@ export default function HomePage() {
             </button>
           </div>
 
+          {/* Streak Component */}
+          <div className="mb-6">
+            <SwipeStreak
+              currentStreak={userStats.currentStreak}
+              accuracy={userStats.accuracy}
+              totalPredictions={userStats.totalPredictions}
+            />
+          </div>
+
           {/* Stats Bar */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             <div className="glass-card p-4 text-center">
@@ -202,6 +249,13 @@ export default function HomePage() {
           </div>
         </div>
       )}
+
+      {/* Achievement Toast */}
+      <AchievementToast
+        achievement={currentAchievement}
+        show={showToast}
+        onDismiss={dismissToast}
+      />
     </div>
   );
 }
