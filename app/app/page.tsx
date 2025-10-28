@@ -91,73 +91,61 @@ export default function HomePage() {
 
   if (!connected) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-4">
-        <div className="text-center space-y-8 max-w-2xl">
-          {/* Hero Section */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-center space-x-2 mb-6">
-              <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-r from-zenith-500 to-zenith-600">
-                <Zap className="w-8 h-8 text-white" />
-              </div>
-            </div>
+      <div className="landing-page min-h-screen flex flex-col items-center justify-center px-4 relative overflow-hidden">
+        {/* Background concentric circles */}
+        <div className="concentric-circles" />
+        
+        <div className="text-center space-y-6 max-w-4xl z-10 relative">
+          {/* Small uppercase header */}
+          <div className="landing-header">
+            SOLVIBES HARNESSES
+          </div>
 
-            <h1 className="text-4xl md:text-6xl font-bold">
-              <span className="gradient-text">SwipePredict</span>
+          {/* Main headline - split into two parts */}
+          <div className="space-y-2">
+            <h1 className="landing-title-white">
+              The power of swipe
             </h1>
-
-            <p className="text-xl text-muted-foreground">
-              Tinder for Prediction Markets
-            </p>
-
-            <p className="text-lg text-muted-foreground max-w-lg mx-auto">
-              Swipe right on events you think will happen, left on those you don't.
-              Built on Solana with Arcium privacy protection.
-            </p>
+            <h1 className="landing-title-gradient">
+              prediction markets
+            </h1>
           </div>
 
-          {/* Features */}
-          <div className="grid md:grid-cols-3 gap-6 mt-16">
-            <div className="glass-card p-6 text-center space-y-3">
-              <div className="w-12 h-12 rounded-full bg-zenith-500/20 flex items-center justify-center mx-auto">
-                <TrendingUp className="w-6 h-6 text-zenith-400" />
-              </div>
-              <h3 className="font-semibold">Intuitive Swiping</h3>
-              <p className="text-sm text-muted-foreground">
-                Make predictions as easy as swiping on your favorite app
-              </p>
-            </div>
+          {/* Descriptive text */}
+          <p className="landing-description">
+            allowing you to trade on real-world event outcomes in a fully transparent<br />
+            and decentralized market powered by Solana blockchain.
+          </p>
 
-            <div className="glass-card p-6 text-center space-y-3">
-              <div className="w-12 h-12 rounded-full bg-zenith-500/20 flex items-center justify-center mx-auto">
-                <Users className="w-6 h-6 text-zenith-400" />
+          {/* Abstract gradient shape */}
+          <div className="gradient-mountain-container">
+            <div className="gradient-mountain">
+              {/* Glowing droplet at peak */}
+              <div className="mountain-droplet">
+                <div className="droplet-icon">💧</div>
               </div>
-              <h3 className="font-semibold">Privacy Protected</h3>
-              <p className="text-sm text-muted-foreground">
-                Your predictions are secured with Arcium's MPC technology
-              </p>
-            </div>
-
-            <div className="glass-card p-6 text-center space-y-3">
-              <div className="w-12 h-12 rounded-full bg-zenith-500/20 flex items-center justify-center mx-auto">
-                <Trophy className="w-6 h-6 text-zenith-400" />
-              </div>
-              <h3 className="font-semibold">Competitive Trading</h3>
-              <p className="text-sm text-muted-foreground">
-                Compete with others and build your reputation
-              </p>
             </div>
           </div>
+        </div>
 
-          {/* CTA */}
-          <div className="mt-12">
-            <p className="text-muted-foreground mb-4">
-              Connect your Solana wallet to start swiping
-            </p>
-            <div className="animate-pulse">
-              <div className="w-8 h-8 mx-auto text-zenith-400">
-                ⬆️
-              </div>
-            </div>
+        {/* Scroll indicator */}
+        <div className="scroll-indicator">
+          <div className="scroll-circle">
+            <svg 
+              width="20" 
+              height="20" 
+              viewBox="0 0 20 20" 
+              fill="none" 
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path 
+                d="M5 7.5L10 12.5L15 7.5" 
+                stroke="white" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+              />
+            </svg>
           </div>
         </div>
       </div>
