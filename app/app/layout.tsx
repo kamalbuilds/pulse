@@ -12,23 +12,23 @@ import { PWAInstallPrompt, NetworkStatus } from '@/components/mobile/PWAInstallP
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata = {
-  title: 'SwipePredict - Tinder for Prediction Markets',
+  title: 'SolanaVibes - Tinder for Prediction Markets',
   description: 'Swipe right on events you think will happen, left on those you don\'t. Built on Solana with Arcium privacy protection.',
   keywords: ['Prediction Markets', 'Swipe Interface', 'Privacy', 'Solana', 'Arcium', 'MPC', 'Blockchain'],
-  authors: [{ name: 'SwipePredict Team' }],
-  creator: 'SwipePredict',
+  authors: [{ name: 'SolanaVibes Team' }],
+  creator: 'SolanaVibes',
   metadataBase: new URL('https://swipepredict.com'),
   openGraph: {
-    title: 'SwipePredict - Tinder for Prediction Markets',
+    title: 'SolanaVibes - Tinder for Prediction Markets',
     description: 'Swipe right on events you think will happen, left on those you don\'t. Built on Solana with Arcium privacy protection.',
     url: 'https://swipepredict.com',
-    siteName: 'SwipePredict',
+    siteName: 'SolanaVibes',
     images: [
       {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'SwipePredict - Tinder for Prediction Markets',
+        alt: 'SolanaVibes - Tinder for Prediction Markets',
       },
     ],
     locale: 'en_US',
@@ -36,7 +36,7 @@ export const metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'SwipePredict - Tinder for Prediction Markets',
+    title: 'SolanaVibes - Tinder for Prediction Markets',
     description: 'Swipe right on events you think will happen, left on those you don\'t. Built on Solana with Arcium privacy protection.',
     images: ['/og-image.png'],
   },

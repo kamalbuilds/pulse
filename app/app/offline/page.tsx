@@ -75,8 +75,8 @@ export default function OfflinePage() {
               </h1>
               <p className="text-muted-foreground">
                 {isOnline
-                  ? 'Reconnecting to SwipePredict...'
-                  : 'SwipePredict needs an internet connection'
+                  ? 'Reconnecting to SolanaVibes...'
+                  : 'SolanaVibes needs an internet connection'
                 }
               </p>
             </div>
@@ -146,7 +146,7 @@ export default function OfflinePage() {
         {/* PWA Info */}
         <div className="text-xs text-muted-foreground space-y-2">
           <p>
-            💡 <strong>Tip:</strong> Add SwipePredict to your home screen for faster access
+            💡 <strong>Tip:</strong> Add SolanaVibes to your home screen for faster access
           </p>
           <p>
             Your votes and market creations will sync automatically when you're back online.

@@ -1,4 +1,4 @@
-// SwipePredict PWA Service Worker
+// SolanaVibes PWA Service Worker
 const CACHE_NAME = 'swipepredict-v1.0.0';
 const OFFLINE_CACHE = 'swipepredict-offline-v1';
 
@@ -200,7 +200,7 @@ async function handleNavigationRequest(request) {
       <!DOCTYPE html>
       <html>
         <head>
-          <title>SwipePredict - Offline</title>
+          <title>SolanaVibes - Offline</title>
           <meta name="viewport" content="width=device-width, initial-scale=1">
           <style>
             body {
@@ -243,7 +243,7 @@ async function handleNavigationRequest(request) {
         <body>
           <div class="logo">⚡</div>
           <h1>You're Offline</h1>
-          <p>SwipePredict needs an internet connection to load new markets.</p>
+          <p>SolanaVibes needs an internet connection to load new markets.</p>
           <button onclick="window.location.reload()">Try Again</button>
         </body>
       </html>
@@ -381,7 +381,7 @@ self.addEventListener('push', (event) => {
     };
 
     event.waitUntil(
-      self.registration.showNotification(data.title || 'SwipePredict', options)
+      self.registration.showNotification(data.title || 'SolanaVibes', options)
     );
   } catch (error) {
     console.error('[SW] Push notification error:', error);

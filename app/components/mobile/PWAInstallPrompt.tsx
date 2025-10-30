@@ -35,7 +35,7 @@ export const PWAInstallPrompt: React.FC = () => {
 
           <div className="flex-1 min-w-0">
             <h3 className="text-sm font-semibold text-zenith-400 mb-1">
-              Install SwipePredict
+              Install SolanaVibes
             </h3>
             <p className="text-xs text-muted-foreground mb-3">
               Get faster access and offline support for your prediction markets

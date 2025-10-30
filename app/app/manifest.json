@@ -1,6 +1,6 @@
 {
-  "name": "SwipePredict - Tinder for Prediction Markets",
-  "short_name": "SwipePredict",
+  "name": "SolanaVibes - Tinder for Prediction Markets",
+  "short_name": "SolanaVibes",
   "description": "Swipe right on events you think will happen, left on those you don't. Built on Solana with Arcium privacy protection.",
   "start_url": "/",
   "display": "standalone",

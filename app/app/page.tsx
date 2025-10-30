@@ -94,8 +94,15 @@ export default function HomePage() {
       <div className="landing-page min-h-screen flex flex-col items-center justify-center px-4 relative overflow-hidden">
         {/* Background concentric circles */}
         <div className="concentric-circles" />
-        
-        <div className="text-center space-y-6 max-w-4xl z-10 relative">
+
+        <div className="text-center space-y-8 max-w-4xl z-10 relative">
+          {/* Logo and Brand */}
+          <div className="flex items-center justify-center space-x-2 mb-6">
+            <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-r from-zenith-500 to-zenith-600">
+              <Zap className="w-8 h-8 text-white" />
+            </div>
+          </div>
+
           {/* Small uppercase header */}
           <div className="landing-header">
             SOLVIBES HARNESSES
@@ -126,23 +133,66 @@ export default function HomePage() {
               </div>
             </div>
           </div>
+
+          {/* Features Grid */}
+          <div className="grid md:grid-cols-3 gap-6 mt-16">
+            <div className="glass-card p-6 text-center space-y-3">
+              <div className="w-12 h-12 rounded-full bg-zenith-500/20 flex items-center justify-center mx-auto">
+                <TrendingUp className="w-6 h-6 text-zenith-400" />
+              </div>
+              <h3 className="font-semibold">Intuitive Swiping</h3>
+              <p className="text-sm text-muted-foreground">
+                Make predictions as easy as swiping on your favorite app
+              </p>
+            </div>
+            <div className="glass-card p-6 text-center space-y-3">
+              <div className="w-12 h-12 rounded-full bg-zenith-500/20 flex items-center justify-center mx-auto">
+                <Users className="w-6 h-6 text-zenith-400" />
+              </div>
+              <h3 className="font-semibold">Privacy Protected</h3>
+              <p className="text-sm text-muted-foreground">
+                Your predictions are secured with Arcium's MPC technology
+              </p>
+            </div>
+            <div className="glass-card p-6 text-center space-y-3">
+              <div className="w-12 h-12 rounded-full bg-zenith-500/20 flex items-center justify-center mx-auto">
+                <Trophy className="w-6 h-6 text-zenith-400" />
+              </div>
+              <h3 className="font-semibold">Competitive Trading</h3>
+              <p className="text-sm text-muted-foreground">
+                Compete with others and build your reputation
+              </p>
+            </div>
+          </div>
+
+          {/* CTA */}
+          <div className="mt-12">
+            <p className="text-muted-foreground mb-4">
+              Connect your Solana wallet to start swiping
+            </p>
+            <div className="animate-pulse">
+              <div className="w-8 h-8 mx-auto text-zenith-400">
+                ⬆️
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Scroll indicator */}
         <div className="scroll-indicator">
           <div className="scroll-circle">
-            <svg 
-              width="20" 
-              height="20" 
-              viewBox="0 0 20 20" 
-              fill="none" 
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 20 20"
+              fill="none"
               xmlns="http://www.w3.org/2000/svg"
             >
-              <path 
-                d="M5 7.5L10 12.5L15 7.5" 
-                stroke="white" 
-                strokeWidth="2" 
-                strokeLinecap="round" 
+              <path
+                d="M5 7.5L10 12.5L15 7.5"
+                stroke="white"
+                strokeWidth="2"
+                strokeLinecap="round"
                 strokeLinejoin="round"
               />
             </svg>
