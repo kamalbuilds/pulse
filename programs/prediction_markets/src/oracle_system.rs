@@ -4,7 +4,7 @@ use std::collections::HashMap;
 // Oracle resolution system for prediction markets
 // Inspired by UMA DVM and Chainlink for different data types
 
-#[derive(AnchorSerialize, AnchorDeserialize, Clone, PartialEq)]
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, PartialEq)]
 pub enum OracleType {
     UmaOptimistic,    // UMA's optimistic oracle for subjective outcomes
     ChainlinkPrice,   // Chainlink for objective price data
@@ -255,7 +255,7 @@ impl OracleResolution {
     pub fn resolve_price_oracle(
         price_oracle: &PriceOracle,
         price_feeds: &[u64], // Array of price data from different sources
-        current_timestamp: i64,
+        _current_timestamp: i64,
     ) -> Result<bool> {
         require!(
             price_feeds.len() >= price_oracle.minimum_sources as usize,

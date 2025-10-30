@@ -17,12 +17,12 @@ idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]
 default = []
 
 [dependencies]
-anchor-lang = "0.31.1"
+anchor-lang = { version = "0.31.1", features = ["init-if-needed"] }
 anchor-spl = "0.31.1"
-# Temporarily remove Arcium dependencies to allow Solana build
-# arcium-anchor = "0.1.0"
-# arcium-macros = "0.1.0"
-# arcium-client = "0.1.47"
+
+arcium-client = { version = "0.3.0", default-features = false }
+arcium-macros = { version = "0.3.0" }
+arcium-anchor = { version = "0.3.0" }
 
 # [dev-dependencies]
 # solana-program-test = "~1.18.26"
