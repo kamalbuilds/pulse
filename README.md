@@ -1,4 +1,4 @@
-# 🎯 SolVibes: Tinder-Style Prediction Markets on Arcium
+# 🎯 Pulse: Tinder-Style Prediction Markets on Arcium
 
 **A privacy-preserving prediction markets platform that makes forecasting as addictive as social swiping**
 
