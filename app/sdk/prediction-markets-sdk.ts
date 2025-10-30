@@ -152,7 +152,7 @@ export class PredictionMarketsSDK {
 
     // @ts-ignore
     this.program = new Program(
-      require("../target/idl/prediction_markets.json"),
+      require("./idl/prediction_markets.json"),
       config.programId,
       this.provider
     );

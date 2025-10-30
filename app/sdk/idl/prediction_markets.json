@@ -1,0 +1,2599 @@
+{
+  "address": "6crfTQztShryQeMRaPG5H5Uf7Zd69wyPRRF4AFBndh9F",
+  "metadata": {
+    "name": "prediction_markets",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Tinder-style prediction markets with Arcium privacy"
+  },
+  "instructions": [
+    {
+      "name": "aggregate_market_votes_callback",
+      "discriminator": [
+        222,
+        167,
+        68,
+        54,
+        34,
+        188,
+        253,
+        196
+      ],
+      "accounts": [
+        {
+          "name": "arcium_program",
+          "address": "BKck65TgoKRokMjQM3datB9oRwJ8rAj2jxPXvHXUvcL6"
+        },
+        {
+          "name": "comp_def_account"
+        },
+        {
+          "name": "instructions_sysvar",
+          "address": "Sysvar1nstructions1111111111111111111111111"
+        },
+        {
+          "name": "prediction_market",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "output",
+          "type": {
+            "defined": {
+              "name": "ComputationOutputs",
+              "generics": [
+                {
+                  "kind": "type",
+                  "type": {
+                    "defined": {
+                      "name": "AggregateMarketVotesOutput"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "aggregate_votes",
+      "docs": [
+        "Aggregate votes for market state calculation (called periodically or on-demand)"
+      ],
+      "discriminator": [
+        122,
+        219,
+        229,
+        159,
+        153,
+        42,
+        64,
+        122
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "sign_pda_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  83,
+                  105,
+                  103,
+                  110,
+                  101,
+                  114,
+                  65,
+                  99,
+                  99,
+                  111,
+                  117,
+                  110,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "mxe_account"
+        },
+        {
+          "name": "mempool_account",
+          "writable": true
+        },
+        {
+          "name": "executing_pool",
+          "writable": true
+        },
+        {
+          "name": "computation_account",
+          "writable": true
+        },
+        {
+          "name": "comp_def_account"
+        },
+        {
+          "name": "cluster_account",
+          "writable": true
+        },
+        {
+          "name": "pool_account",
+          "writable": true,
+          "address": "7MGSS4iKNM4sVib7bDZDJhVqB6EcchPwVnTKenCY1jt3"
+        },
+        {
+          "name": "clock_account",
+          "address": "FHriyvoZotYiFnbUzKFjzRSb2NiaC8RPWY7jtKuKhg65"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "arcium_program",
+          "address": "BKck65TgoKRokMjQM3datB9oRwJ8rAj2jxPXvHXUvcL6"
+        },
+        {
+          "name": "prediction_market",
+          "writable": true
+        },
+        {
+          "name": "user_position"
+        }
+      ],
+      "args": [
+        {
+          "name": "computation_offset",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "calculate_market_odds",
+      "docs": [
+        "Calculate market odds using encrypted vote data",
+        "",
+        "This reveals aggregated market odds without revealing individual votes"
+      ],
+      "discriminator": [
+        4,
+        119,
+        72,
+        8,
+        225,
+        15,
+        118,
+        243
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "sign_pda_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  83,
+                  105,
+                  103,
+                  110,
+                  101,
+                  114,
+                  65,
+                  99,
+                  99,
+                  111,
+                  117,
+                  110,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "mxe_account"
+        },
+        {
+          "name": "mempool_account",
+          "writable": true
+        },
+        {
+          "name": "executing_pool",
+          "writable": true
+        },
+        {
+          "name": "computation_account",
+          "writable": true
+        },
+        {
+          "name": "comp_def_account"
+        },
+        {
+          "name": "cluster_account",
+          "writable": true
+        },
+        {
+          "name": "pool_account",
+          "writable": true,
+          "address": "7MGSS4iKNM4sVib7bDZDJhVqB6EcchPwVnTKenCY1jt3"
+        },
+        {
+          "name": "clock_account",
+          "address": "FHriyvoZotYiFnbUzKFjzRSb2NiaC8RPWY7jtKuKhg65"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "arcium_program",
+          "address": "BKck65TgoKRokMjQM3datB9oRwJ8rAj2jxPXvHXUvcL6"
+        },
+        {
+          "name": "prediction_market"
+        }
+      ],
+      "args": [
+        {
+          "name": "computation_offset",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "calculate_market_odds_callback",
+      "discriminator": [
+        16,
+        205,
+        100,
+        127,
+        129,
+        222,
+        125,
+        107
+      ],
+      "accounts": [
+        {
+          "name": "arcium_program",
+          "address": "BKck65TgoKRokMjQM3datB9oRwJ8rAj2jxPXvHXUvcL6"
+        },
+        {
+          "name": "comp_def_account"
+        },
+        {
+          "name": "instructions_sysvar",
+          "address": "Sysvar1nstructions1111111111111111111111111"
+        },
+        {
+          "name": "prediction_market"
+        }
+      ],
+      "args": [
+        {
+          "name": "output",
+          "type": {
+            "defined": {
+              "name": "ComputationOutputs",
+              "generics": [
+                {
+                  "kind": "type",
+                  "type": {
+                    "defined": {
+                      "name": "CalculateMarketOddsOutput"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "calculate_payout_callback",
+      "discriminator": [
+        124,
+        117,
+        1,
+        169,
+        253,
+        255,
+        240,
+        156
+      ],
+      "accounts": [
+        {
+          "name": "arcium_program",
+          "address": "BKck65TgoKRokMjQM3datB9oRwJ8rAj2jxPXvHXUvcL6"
+        },
+        {
+          "name": "comp_def_account"
+        },
+        {
+          "name": "instructions_sysvar",
+          "address": "Sysvar1nstructions1111111111111111111111111"
+        },
+        {
+          "name": "user_position",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "output",
+          "type": {
+            "defined": {
+              "name": "ComputationOutputs",
+              "generics": [
+                {
+                  "kind": "type",
+                  "type": {
+                    "defined": {
+                      "name": "CalculatePayoutOutput"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "calculate_user_payout",
+      "docs": [
+        "Calculate payout for user using MPC",
+        "",
+        "This queues an encrypted computation to calculate the user's payout",
+        "based on their encrypted vote and the market outcome"
+      ],
+      "discriminator": [
+        32,
+        175,
+        135,
+        245,
+        136,
+        20,
+        125,
+        88
+      ],
+      "accounts": [
+        {
+          "name": "user",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "sign_pda_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  83,
+                  105,
+                  103,
+                  110,
+                  101,
+                  114,
+                  65,
+                  99,
+                  99,
+                  111,
+                  117,
+                  110,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "mxe_account"
+        },
+        {
+          "name": "mempool_account",
+          "writable": true
+        },
+        {
+          "name": "executing_pool",
+          "writable": true
+        },
+        {
+          "name": "computation_account",
+          "writable": true
+        },
+        {
+          "name": "comp_def_account"
+        },
+        {
+          "name": "cluster_account",
+          "writable": true
+        },
+        {
+          "name": "pool_account",
+          "writable": true,
+          "address": "7MGSS4iKNM4sVib7bDZDJhVqB6EcchPwVnTKenCY1jt3"
+        },
+        {
+          "name": "clock_account",
+          "address": "FHriyvoZotYiFnbUzKFjzRSb2NiaC8RPWY7jtKuKhg65"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "arcium_program",
+          "address": "BKck65TgoKRokMjQM3datB9oRwJ8rAj2jxPXvHXUvcL6"
+        },
+        {
+          "name": "prediction_market"
+        },
+        {
+          "name": "user_position",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  115,
+                  105,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "user"
+              },
+              {
+                "kind": "account",
+                "path": "prediction_market"
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "computation_offset",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "claim_payout",
+      "docs": [
+        "Claim payout after calculation",
+        "",
+        "User must decrypt their payout amount client-side and verify"
+      ],
+      "discriminator": [
+        127,
+        240,
+        132,
+        62,
+        227,
+        198,
+        146,
+        133
+      ],
+      "accounts": [
+        {
+          "name": "user",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "prediction_market"
+        },
+        {
+          "name": "user_position",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  115,
+                  105,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "user"
+              },
+              {
+                "kind": "account",
+                "path": "prediction_market"
+              }
+            ]
+          }
+        },
+        {
+          "name": "user_profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "user"
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "create_market",
+      "docs": [
+        "Creates a new prediction market with encrypted voting",
+        "",
+        "# Arguments",
+        "* `market_id` - Unique identifier for this market",
+        "* `title` - Market question (max 200 chars)",
+        "* `description` - Detailed description (max 1000 chars)",
+        "* `image_url` - Market image URL (max 200 chars)",
+        "* `category` - Market category (Sports, Politics, etc.)",
+        "* `voting_ends_at` - Unix timestamp when voting closes",
+        "* `oracle_type` - Type of oracle for resolution"
+      ],
+      "discriminator": [
+        103,
+        226,
+        97,
+        235,
+        200,
+        188,
+        251,
+        254
+      ],
+      "accounts": [
+        {
+          "name": "creator",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "prediction_market",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  97,
+                  114,
+                  107,
+                  101,
+                  116
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "market_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "oracle"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "market_id",
+          "type": "u64"
+        },
+        {
+          "name": "title",
+          "type": "string"
+        },
+        {
+          "name": "description",
+          "type": "string"
+        },
+        {
+          "name": "image_url",
+          "type": "string"
+        },
+        {
+          "name": "category",
+          "type": {
+            "defined": {
+              "name": "MarketCategory"
+            }
+          }
+        },
+        {
+          "name": "voting_ends_at",
+          "type": "i64"
+        },
+        {
+          "name": "oracle_type",
+          "type": {
+            "defined": {
+              "name": "OracleType"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "init_aggregate_comp_def",
+      "docs": [
+        "Initialize computation definition for aggregate_market_votes with offchain circuit storage"
+      ],
+      "discriminator": [
+        149,
+        123,
+        55,
+        80,
+        78,
+        128,
+        138,
+        207
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "mxe_account",
+          "writable": true
+        },
+        {
+          "name": "comp_def_account",
+          "writable": true
+        },
+        {
+          "name": "arcium_program",
+          "address": "BKck65TgoKRokMjQM3datB9oRwJ8rAj2jxPXvHXUvcL6"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "init_calculate_odds_comp_def",
+      "docs": [
+        "Initialize computation definition for calculate_market_odds with offchain circuit storage"
+      ],
+      "discriminator": [
+        202,
+        26,
+        16,
+        22,
+        173,
+        80,
+        4,
+        137
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "mxe_account",
+          "writable": true
+        },
+        {
+          "name": "comp_def_account",
+          "writable": true
+        },
+        {
+          "name": "arcium_program",
+          "address": "BKck65TgoKRokMjQM3datB9oRwJ8rAj2jxPXvHXUvcL6"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "init_calculate_payout_comp_def",
+      "docs": [
+        "Initialize computation definition for calculate_payout with offchain circuit storage"
+      ],
+      "discriminator": [
+        60,
+        71,
+        17,
+        183,
+        94,
+        26,
+        98,
+        216
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "mxe_account",
+          "writable": true
+        },
+        {
+          "name": "comp_def_account",
+          "writable": true
+        },
+        {
+          "name": "arcium_program",
+          "address": "BKck65TgoKRokMjQM3datB9oRwJ8rAj2jxPXvHXUvcL6"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "init_submit_vote_comp_def",
+      "docs": [
+        "Initialize computation definition for submit_private_vote with offchain circuit storage"
+      ],
+      "discriminator": [
+        174,
+        45,
+        144,
+        190,
+        201,
+        47,
+        29,
+        187
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "mxe_account",
+          "writable": true
+        },
+        {
+          "name": "comp_def_account",
+          "writable": true
+        },
+        {
+          "name": "arcium_program",
+          "address": "BKck65TgoKRokMjQM3datB9oRwJ8rAj2jxPXvHXUvcL6"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "initialize_user_profile",
+      "docs": [
+        "Initialize user profile for tracking stats and reputation"
+      ],
+      "discriminator": [
+        192,
+        144,
+        204,
+        140,
+        113,
+        25,
+        59,
+        102
+      ],
+      "accounts": [
+        {
+          "name": "user",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "user_profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "user"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "resolve_market",
+      "docs": [
+        "Resolve market with oracle outcome",
+        "",
+        "Only authorized oracle can call this to finalize the market"
+      ],
+      "discriminator": [
+        155,
+        23,
+        80,
+        173,
+        46,
+        74,
+        23,
+        239
+      ],
+      "accounts": [
+        {
+          "name": "oracle",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "prediction_market",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "outcome",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "submit_encrypted_vote",
+      "docs": [
+        "Submit encrypted vote to prediction market",
+        "",
+        "This queues an MPC computation that validates and processes the encrypted vote",
+        "without revealing individual vote choices to anyone",
+        "",
+        "# Arguments",
+        "* `vote_data_encrypted` - Encrypted vote data (32 bytes per field x 7 fields, voter derived from signer)",
+        "* `vote_encryption_pubkey` - User's x25519 public key",
+        "* `vote_nonce` - Nonce for vote encryption",
+        "* `stake_amount` - Amount staked on this prediction"
+      ],
+      "discriminator": [
+        189,
+        14,
+        111,
+        5,
+        156,
+        59,
+        54,
+        120
+      ],
+      "accounts": [
+        {
+          "name": "user",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "sign_pda_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  83,
+                  105,
+                  103,
+                  110,
+                  101,
+                  114,
+                  65,
+                  99,
+                  99,
+                  111,
+                  117,
+                  110,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "mxe_account"
+        },
+        {
+          "name": "mempool_account",
+          "writable": true
+        },
+        {
+          "name": "executing_pool",
+          "writable": true
+        },
+        {
+          "name": "computation_account",
+          "writable": true
+        },
+        {
+          "name": "comp_def_account"
+        },
+        {
+          "name": "cluster_account",
+          "writable": true
+        },
+        {
+          "name": "pool_account",
+          "writable": true,
+          "address": "7MGSS4iKNM4sVib7bDZDJhVqB6EcchPwVnTKenCY1jt3"
+        },
+        {
+          "name": "clock_account",
+          "address": "FHriyvoZotYiFnbUzKFjzRSb2NiaC8RPWY7jtKuKhg65"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "arcium_program",
+          "address": "BKck65TgoKRokMjQM3datB9oRwJ8rAj2jxPXvHXUvcL6"
+        },
+        {
+          "name": "prediction_market",
+          "writable": true
+        },
+        {
+          "name": "user_position",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  115,
+                  105,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "user"
+              },
+              {
+                "kind": "account",
+                "path": "prediction_market"
+              }
+            ]
+          }
+        },
+        {
+          "name": "user_profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "user"
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "computation_offset",
+          "type": "u64"
+        },
+        {
+          "name": "vote_data_encrypted",
+          "type": {
+            "array": [
+              {
+                "array": [
+                  "u8",
+                  32
+                ]
+              },
+              7
+            ]
+          }
+        },
+        {
+          "name": "vote_encryption_pubkey",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "vote_nonce",
+          "type": "u128"
+        },
+        {
+          "name": "stake_amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "submit_private_vote_callback",
+      "discriminator": [
+        106,
+        164,
+        252,
+        100,
+        130,
+        209,
+        16,
+        177
+      ],
+      "accounts": [
+        {
+          "name": "arcium_program",
+          "address": "BKck65TgoKRokMjQM3datB9oRwJ8rAj2jxPXvHXUvcL6"
+        },
+        {
+          "name": "comp_def_account"
+        },
+        {
+          "name": "instructions_sysvar",
+          "address": "Sysvar1nstructions1111111111111111111111111"
+        },
+        {
+          "name": "user_position",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "output",
+          "type": {
+            "defined": {
+              "name": "ComputationOutputs",
+              "generics": [
+                {
+                  "kind": "type",
+                  "type": {
+                    "defined": {
+                      "name": "SubmitPrivateVoteOutput"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "ClockAccount",
+      "discriminator": [
+        152,
+        171,
+        158,
+        195,
+        75,
+        61,
+        51,
+        8
+      ]
+    },
+    {
+      "name": "Cluster",
+      "discriminator": [
+        236,
+        225,
+        118,
+        228,
+        173,
+        106,
+        18,
+        60
+      ]
+    },
+    {
+      "name": "ComputationDefinitionAccount",
+      "discriminator": [
+        245,
+        176,
+        217,
+        221,
+        253,
+        104,
+        172,
+        200
+      ]
+    },
+    {
+      "name": "FeePool",
+      "discriminator": [
+        172,
+        38,
+        77,
+        146,
+        148,
+        5,
+        51,
+        242
+      ]
+    },
+    {
+      "name": "MXEAccount",
+      "discriminator": [
+        103,
+        26,
+        85,
+        250,
+        179,
+        159,
+        17,
+        117
+      ]
+    },
+    {
+      "name": "PredictionMarket",
+      "discriminator": [
+        117,
+        150,
+        97,
+        152,
+        119,
+        58,
+        51,
+        58
+      ]
+    },
+    {
+      "name": "SignerAccount",
+      "discriminator": [
+        127,
+        212,
+        7,
+        180,
+        17,
+        50,
+        249,
+        193
+      ]
+    },
+    {
+      "name": "UserPosition",
+      "discriminator": [
+        251,
+        248,
+        209,
+        245,
+        83,
+        234,
+        17,
+        27
+      ]
+    },
+    {
+      "name": "UserProfile",
+      "discriminator": [
+        32,
+        37,
+        119,
+        205,
+        179,
+        180,
+        13,
+        194
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "MarketCreatedEvent",
+      "discriminator": [
+        130,
+        142,
+        5,
+        16,
+        107,
+        160,
+        73,
+        124
+      ]
+    },
+    {
+      "name": "MarketOddsUpdatedEvent",
+      "discriminator": [
+        69,
+        125,
+        73,
+        179,
+        238,
+        153,
+        117,
+        75
+      ]
+    },
+    {
+      "name": "MarketResolvedEvent",
+      "discriminator": [
+        87,
+        249,
+        34,
+        139,
+        194,
+        159,
+        14,
+        156
+      ]
+    },
+    {
+      "name": "PayoutClaimedEvent",
+      "discriminator": [
+        69,
+        111,
+        213,
+        94,
+        91,
+        203,
+        244,
+        39
+      ]
+    },
+    {
+      "name": "VoteSubmittedEvent",
+      "discriminator": [
+        82,
+        229,
+        85,
+        50,
+        230,
+        203,
+        219,
+        145
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "ChallengePeriodActive",
+      "msg": "Challenge period is still active"
+    },
+    {
+      "code": 6001,
+      "name": "RequiresValidatorResolution",
+      "msg": "Requires validator resolution due to disputes"
+    },
+    {
+      "code": 6002,
+      "name": "InsufficientPriceSources",
+      "msg": "Insufficient price sources for resolution"
+    },
+    {
+      "code": 6003,
+      "name": "InsufficientValidatorParticipation",
+      "msg": "Insufficient validator participation"
+    },
+    {
+      "code": 6004,
+      "name": "NoConsensusReached",
+      "msg": "No consensus reached among validators"
+    },
+    {
+      "code": 6005,
+      "name": "InvalidOracleType",
+      "msg": "Invalid oracle type for this resolution method"
+    },
+    {
+      "code": 6006,
+      "name": "ValidatorNotEligible",
+      "msg": "Validator not eligible to participate"
+    },
+    {
+      "code": 6007,
+      "name": "ProposalAlreadyResolved",
+      "msg": "Oracle proposal already resolved"
+    },
+    {
+      "code": 6008,
+      "name": "InvalidEvidenceHash",
+      "msg": "Invalid evidence hash"
+    },
+    {
+      "code": 6009,
+      "name": "InsufficientBond",
+      "msg": "Insufficient bond amount"
+    }
+  ],
+  "types": [
+    {
+      "name": "Activation",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "activation_epoch",
+            "type": {
+              "defined": {
+                "name": "Epoch"
+              }
+            }
+          },
+          {
+            "name": "deactivation_epoch",
+            "type": {
+              "defined": {
+                "name": "Epoch"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "AggregateMarketVotesOutput",
+      "docs": [
+        "The output of the callback instruction. Provided as a struct with ordered fields",
+        "as anchor does not support tuples and tuple structs yet."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "field_0",
+            "type": {
+              "defined": {
+                "name": "SharedEncryptedStruct",
+                "generics": [
+                  {
+                    "kind": "const",
+                    "value": "11"
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "CalculateMarketOddsOutput",
+      "docs": [
+        "The output of the callback instruction. Provided as a struct with ordered fields",
+        "as anchor does not support tuples and tuple structs yet."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "field_0",
+            "type": {
+              "defined": {
+                "name": "SharedEncryptedStruct",
+                "generics": [
+                  {
+                    "kind": "const",
+                    "value": "4"
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "CalculatePayoutOutput",
+      "docs": [
+        "The output of the callback instruction. Provided as a struct with ordered fields",
+        "as anchor does not support tuples and tuple structs yet."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "field_0",
+            "type": {
+              "defined": {
+                "name": "SharedEncryptedStruct",
+                "generics": [
+                  {
+                    "kind": "const",
+                    "value": "1"
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "CircuitSource",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Local",
+            "fields": [
+              {
+                "defined": {
+                  "name": "LocalCircuitSource"
+                }
+              }
+            ]
+          },
+          {
+            "name": "OnChain",
+            "fields": [
+              {
+                "defined": {
+                  "name": "OnChainCircuitSource"
+                }
+              }
+            ]
+          },
+          {
+            "name": "OffChain",
+            "fields": [
+              {
+                "defined": {
+                  "name": "OffChainCircuitSource"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "ClockAccount",
+      "docs": [
+        "An account storing the current network epoch"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "start_epoch",
+            "type": {
+              "defined": {
+                "name": "Epoch"
+              }
+            }
+          },
+          {
+            "name": "current_epoch",
+            "type": {
+              "defined": {
+                "name": "Epoch"
+              }
+            }
+          },
+          {
+            "name": "start_epoch_timestamp",
+            "type": {
+              "defined": {
+                "name": "Timestamp"
+              }
+            }
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Cluster",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": {
+              "option": "pubkey"
+            }
+          },
+          {
+            "name": "max_size",
+            "type": "u32"
+          },
+          {
+            "name": "activation",
+            "type": {
+              "defined": {
+                "name": "Activation"
+              }
+            }
+          },
+          {
+            "name": "max_capacity",
+            "type": "u64"
+          },
+          {
+            "name": "cu_price",
+            "type": "u64"
+          },
+          {
+            "name": "cu_price_proposals",
+            "type": {
+              "array": [
+                "u64",
+                32
+              ]
+            }
+          },
+          {
+            "name": "last_updated_epoch",
+            "type": {
+              "defined": {
+                "name": "Epoch"
+              }
+            }
+          },
+          {
+            "name": "mxes",
+            "type": {
+              "vec": "pubkey"
+            }
+          },
+          {
+            "name": "nodes",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "NodeRef"
+                }
+              }
+            }
+          },
+          {
+            "name": "pending_nodes",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "NodeRef"
+                }
+              }
+            }
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ComputationDefinitionAccount",
+      "docs": [
+        "An account representing a [ComputationDefinition] in a MXE."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "finalization_authority",
+            "type": {
+              "option": "pubkey"
+            }
+          },
+          {
+            "name": "finalize_during_callback",
+            "type": "bool"
+          },
+          {
+            "name": "cu_amount",
+            "type": "u64"
+          },
+          {
+            "name": "definition",
+            "type": {
+              "defined": {
+                "name": "ComputationDefinitionMeta"
+              }
+            }
+          },
+          {
+            "name": "circuit_source",
+            "type": {
+              "defined": {
+                "name": "CircuitSource"
+              }
+            }
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ComputationDefinitionMeta",
+      "docs": [
+        "A computation definition for execution in a MXE."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "circuit_len",
+            "type": "u32"
+          },
+          {
+            "name": "signature",
+            "type": {
+              "defined": {
+                "name": "ComputationSignature"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "ComputationOutputs",
+      "generics": [
+        {
+          "kind": "type",
+          "name": "O"
+        }
+      ],
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Success",
+            "fields": [
+              {
+                "generic": "O"
+              }
+            ]
+          },
+          {
+            "name": "Failure"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ComputationSignature",
+      "docs": [
+        "The signature of a computation defined in a [ComputationDefinition]."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "parameters",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "Parameter"
+                }
+              }
+            }
+          },
+          {
+            "name": "outputs",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "Output"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Epoch",
+      "docs": [
+        "The network epoch"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          "u64"
+        ]
+      }
+    },
+    {
+      "name": "FeePool",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LocalCircuitSource",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "MxeKeygen"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MXEAccount",
+      "docs": [
+        "A MPC Execution Environment."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": {
+              "option": "pubkey"
+            }
+          },
+          {
+            "name": "cluster",
+            "type": {
+              "option": "u32"
+            }
+          },
+          {
+            "name": "x25519_pubkey",
+            "type": {
+              "defined": {
+                "name": "X25519Pubkey"
+              }
+            }
+          },
+          {
+            "name": "fallback_clusters",
+            "type": {
+              "vec": "u32"
+            }
+          },
+          {
+            "name": "rejected_clusters",
+            "type": {
+              "vec": "u32"
+            }
+          },
+          {
+            "name": "computation_definitions",
+            "type": {
+              "vec": "u32"
+            }
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MarketCategory",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Sports"
+          },
+          {
+            "name": "Politics"
+          },
+          {
+            "name": "Economics"
+          },
+          {
+            "name": "Technology"
+          },
+          {
+            "name": "Entertainment"
+          },
+          {
+            "name": "Weather"
+          },
+          {
+            "name": "Custom"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MarketCreatedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "market_id",
+            "type": "u64"
+          },
+          {
+            "name": "creator",
+            "type": "pubkey"
+          },
+          {
+            "name": "title",
+            "type": "string"
+          },
+          {
+            "name": "category",
+            "type": "u8"
+          },
+          {
+            "name": "oracle_type",
+            "type": "u8"
+          },
+          {
+            "name": "voting_ends_at",
+            "type": "i64"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MarketOddsUpdatedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "market_id",
+            "type": "u64"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MarketResolvedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "market_id",
+            "type": "u64"
+          },
+          {
+            "name": "outcome",
+            "type": "bool"
+          },
+          {
+            "name": "resolution_timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MarketStatus",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Active"
+          },
+          {
+            "name": "Locked"
+          },
+          {
+            "name": "Resolved"
+          },
+          {
+            "name": "Settled"
+          },
+          {
+            "name": "Cancelled"
+          }
+        ]
+      }
+    },
+    {
+      "name": "NodeRef",
+      "docs": [
+        "A reference to a node in the cluster.",
+        "The offset is to derive the Node Account.",
+        "The current_total_rewards is the total rewards the node has received so far in the current",
+        "epoch."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "offset",
+            "type": "u32"
+          },
+          {
+            "name": "current_total_rewards",
+            "type": "u64"
+          },
+          {
+            "name": "vote",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "OffChainCircuitSource",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "source",
+            "type": "string"
+          },
+          {
+            "name": "hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "OnChainCircuitSource",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "is_completed",
+            "type": "bool"
+          },
+          {
+            "name": "upload_auth",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "OracleType",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "UmaOptimistic"
+          },
+          {
+            "name": "ChainlinkPrice"
+          },
+          {
+            "name": "CustomValidated"
+          },
+          {
+            "name": "Community"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Output",
+      "docs": [
+        "An output of a computation.",
+        "We currently don't support encrypted outputs yet since encrypted values are passed via",
+        "data objects."
+      ],
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "PlaintextBool"
+          },
+          {
+            "name": "PlaintextU8"
+          },
+          {
+            "name": "PlaintextU16"
+          },
+          {
+            "name": "PlaintextU32"
+          },
+          {
+            "name": "PlaintextU64"
+          },
+          {
+            "name": "PlaintextU128"
+          },
+          {
+            "name": "Ciphertext"
+          },
+          {
+            "name": "ArcisPubkey"
+          },
+          {
+            "name": "PlaintextFloat"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Parameter",
+      "docs": [
+        "A parameter of a computation.",
+        "We differentiate between plaintext and encrypted parameters and data objects.",
+        "Plaintext parameters are directly provided as their value.",
+        "Encrypted parameters are provided as an offchain reference to the data.",
+        "Data objects are provided as a reference to the data object account."
+      ],
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "PlaintextBool"
+          },
+          {
+            "name": "PlaintextU8"
+          },
+          {
+            "name": "PlaintextU16"
+          },
+          {
+            "name": "PlaintextU32"
+          },
+          {
+            "name": "PlaintextU64"
+          },
+          {
+            "name": "PlaintextU128"
+          },
+          {
+            "name": "Ciphertext"
+          },
+          {
+            "name": "ArcisPubkey"
+          },
+          {
+            "name": "ArcisSignature"
+          },
+          {
+            "name": "PlaintextFloat"
+          },
+          {
+            "name": "ManticoreAlgo"
+          },
+          {
+            "name": "InputDataset"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PayoutClaimedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "market_id",
+            "type": "u64"
+          },
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PredictionMarket",
+      "docs": [
+        "Main prediction market account with encrypted vote state",
+        "Note: encrypted_vote_state and nonce are placed early for fixed offset access"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "encrypted_vote_state",
+            "type": {
+              "array": [
+                {
+                  "array": [
+                    "u8",
+                    32
+                  ]
+                },
+                11
+              ]
+            }
+          },
+          {
+            "name": "nonce",
+            "type": "u128"
+          },
+          {
+            "name": "market_id",
+            "type": "u64"
+          },
+          {
+            "name": "creator",
+            "type": "pubkey"
+          },
+          {
+            "name": "category",
+            "type": {
+              "defined": {
+                "name": "MarketCategory"
+              }
+            }
+          },
+          {
+            "name": "status",
+            "type": {
+              "defined": {
+                "name": "MarketStatus"
+              }
+            }
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "voting_ends_at",
+            "type": "i64"
+          },
+          {
+            "name": "resolution_timestamp",
+            "type": "i64"
+          },
+          {
+            "name": "oracle_type",
+            "type": {
+              "defined": {
+                "name": "OracleType"
+              }
+            }
+          },
+          {
+            "name": "oracle_pubkey",
+            "type": "pubkey"
+          },
+          {
+            "name": "resolved_outcome",
+            "type": {
+              "option": "bool"
+            }
+          },
+          {
+            "name": "total_stake",
+            "type": "u64"
+          },
+          {
+            "name": "yes_stake",
+            "type": "u64"
+          },
+          {
+            "name": "no_stake",
+            "type": "u64"
+          },
+          {
+            "name": "participant_count",
+            "type": "u32"
+          },
+          {
+            "name": "title",
+            "type": "string"
+          },
+          {
+            "name": "description",
+            "type": "string"
+          },
+          {
+            "name": "image_url",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SharedEncryptedStruct",
+      "generics": [
+        {
+          "kind": "const",
+          "name": "LEN",
+          "type": "usize"
+        }
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "encryption_key",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "nonce",
+            "type": "u128"
+          },
+          {
+            "name": "ciphertexts",
+            "type": {
+              "array": [
+                {
+                  "array": [
+                    "u8",
+                    32
+                  ]
+                },
+                {
+                  "generic": "LEN"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "SignerAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SubmitPrivateVoteOutput",
+      "docs": [
+        "The output of the callback instruction. Provided as a struct with ordered fields",
+        "as anchor does not support tuples and tuple structs yet."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "field_0",
+            "type": {
+              "defined": {
+                "name": "SharedEncryptedStruct",
+                "generics": [
+                  {
+                    "kind": "const",
+                    "value": "1"
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Timestamp",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "timestamp",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "UserPosition",
+      "docs": [
+        "User's encrypted position in a market"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "stake_amount",
+            "type": "u64"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          },
+          {
+            "name": "is_claimed",
+            "type": "bool"
+          },
+          {
+            "name": "is_validated",
+            "type": "bool"
+          },
+          {
+            "name": "encrypted_vote_data",
+            "type": {
+              "array": [
+                {
+                  "array": [
+                    "u8",
+                    32
+                  ]
+                },
+                7
+              ]
+            }
+          },
+          {
+            "name": "vote_pubkey",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "vote_nonce",
+            "type": "u128"
+          },
+          {
+            "name": "encrypted_payout",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "payout_nonce",
+            "type": "u128"
+          },
+          {
+            "name": "payout_amount",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "UserProfile",
+      "docs": [
+        "User profile for reputation and statistics"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "total_markets_participated",
+            "type": "u32"
+          },
+          {
+            "name": "correct_predictions",
+            "type": "u32"
+          },
+          {
+            "name": "total_winnings",
+            "type": "u64"
+          },
+          {
+            "name": "reputation_score",
+            "type": "u16"
+          },
+          {
+            "name": "streak_current",
+            "type": "u16"
+          },
+          {
+            "name": "streak_best",
+            "type": "u16"
+          },
+          {
+            "name": "last_activity",
+            "type": "i64"
+          },
+          {
+            "name": "achievements",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "preferred_categories",
+            "type": "u16"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "VoteSubmittedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "market_id",
+            "type": "u64"
+          },
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "stake_amount",
+            "type": "u64"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "X25519Pubkey",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Set",
+            "fields": [
+              {
+                "array": [
+                  "u8",
+                  32
+                ]
+              }
+            ]
+          },
+          {
+            "name": "Unset",
+            "fields": [
+              {
+                "array": [
+                  "u8",
+                  32
+                ]
+              },
+              {
+                "vec": "bool"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

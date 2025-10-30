@@ -18,6 +18,9 @@ import {
 import { Market, VoteChoice } from '@/types/market';
 import ArciumPredictionMarketsClient, { ArciumUtils } from '@/lib/arciumClient';
 import HerdingDetection, { HerdingAnalysis } from '@/components/privacy/HerdingDetection';
+import { usePredictionMarkets } from '@/sdk/hooks/usePredictionMarkets';
+import { BN } from '@coral-xyz/anchor';
+import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 
 interface EncryptedVoteModalProps {
   isOpen: boolean;
@@ -36,6 +39,11 @@ export const EncryptedVoteModal: React.FC<EncryptedVoteModalProps> = ({
 }) => {
   const wallet = useWallet();
   const { connection } = useConnection();
+
+  // NEW: Use production SDK instead of mock client
+  const { sdk, isInitialized, error: sdkError } = usePredictionMarkets();
+
+  // FALLBACK: Keep mock client for development/testing
   const [arciumClient] = useState(() => new ArciumPredictionMarketsClient(connection, wallet));
 
   // Vote configuration
@@ -55,6 +63,13 @@ export const EncryptedVoteModal: React.FC<EncryptedVoteModalProps> = ({
   } | null>(null);
   const [privacyScore, setPrivacyScore] = useState(95);
 
+  // MPC Progress tracking
+  const [mpcProgress, setMPCProgress] = useState({
+    stage: 'idle' as 'idle' | 'encrypting' | 'queueing' | 'computing' | 'finalizing',
+    progress: 0,
+    message: ''
+  });
+
   // Privacy simulation
   useEffect(() => {
     // Simulate privacy score calculation based on vote parameters
@@ -73,6 +88,15 @@ export const EncryptedVoteModal: React.FC<EncryptedVoteModalProps> = ({
       return;
     }
 
+    // Check SDK initialization
+    if (!isInitialized || !sdk) {
+      setSubmissionResult({
+        success: false,
+        message: sdkError?.message || 'SDK not initialized. Please wait...'
+      });
+      return;
+    }
+
     // Check herding analysis if we have it
     if (herdingAnalysis && herdingAnalysis.riskLevel === 'critical') {
       setSubmissionResult({
@@ -86,35 +110,54 @@ export const EncryptedVoteModal: React.FC<EncryptedVoteModalProps> = ({
     setSubmissionResult(null);
 
     try {
-      // Submit encrypted vote
-      const result = await arciumClient.submitEncryptedVote(
-        market,
-        voteChoice,
-        stakeAmount,
-        confidence,
-        probability
-      );
+      // NEW: Use production SDK for encrypted voting
+      setMPCProgress({ stage: 'encrypting', progress: 20, message: 'Encrypting vote data with x25519...' });
 
-      if (result.success) {
-        setSubmissionResult({
-          success: true,
-          message: 'Vote submitted privately and encrypted!',
-          signature: result.transactionSignature
-        });
-        onVoteSubmitted(true, result.transactionSignature);
-      } else {
-        setSubmissionResult({
-          success: false,
-          message: result.error || 'Failed to submit vote'
-        });
-        onVoteSubmitted(false);
-      }
+      const result = await sdk.submitEncryptedVote({
+        marketId: new BN(market.id), // Assuming market.id is the numeric ID
+        voteChoice: voteChoice === VoteChoice.Yes,
+        stakeAmount: new BN(stakeAmount * LAMPORTS_PER_SOL),
+        predictedProbability: probability,
+        convictionScore: Math.floor((confidence / 100) * 65535)
+      });
+
+      setMPCProgress({ stage: 'finalizing', progress: 100, message: 'Vote finalized on-chain!' });
+
+      setSubmissionResult({
+        success: true,
+        message: 'Vote submitted privately via Arcium MPC!',
+        signature: result.finalizeTx
+      });
+      onVoteSubmitted(true, result.finalizeTx);
+
     } catch (error) {
+      console.error('Vote submission error:', error);
+
+      // Enhanced error messages
+      let errorMessage = 'Unknown error occurred';
+      if (error instanceof Error) {
+        if (error.message.includes('User rejected')) {
+          errorMessage = 'Transaction cancelled by user';
+        } else if (error.message.includes('insufficient funds')) {
+          errorMessage = 'Insufficient SOL balance. Get devnet SOL from faucet.';
+        } else if (error.message.includes('timeout')) {
+          errorMessage = 'MPC computation timed out. Please try again.';
+        } else if (error.message.includes('Market not active')) {
+          errorMessage = 'This market is no longer accepting votes.';
+        } else if (error.message.includes('already voted')) {
+          errorMessage = 'You have already voted on this market.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+
       setSubmissionResult({
         success: false,
-        message: error instanceof Error ? error.message : 'Unknown error occurred'
+        message: errorMessage
       });
       onVoteSubmitted(false);
+
+      setMPCProgress({ stage: 'idle', progress: 0, message: '' });
     } finally {
       setIsSubmitting(false);
     }
@@ -383,17 +426,49 @@ export const EncryptedVoteModal: React.FC<EncryptedVoteModalProps> = ({
               )}
             </AnimatePresence>
 
+            {/* MPC Progress Indicator */}
+            <AnimatePresence>
+              {isSubmitting && mpcProgress.stage !== 'idle' && (
+                <motion.div
+                  className="space-y-3 p-4 bg-zenith-500/5 border border-zenith-500/20 rounded-lg"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                >
+                  <div className="flex items-center space-x-3">
+                    <Loader2 className="w-5 h-5 animate-spin text-zenith-400" />
+                    <span className="text-sm font-medium text-foreground">{mpcProgress.message}</span>
+                  </div>
+                  <div className="w-full bg-muted/20 rounded-full h-2 overflow-hidden">
+                    <motion.div
+                      className="h-full bg-gradient-to-r from-zenith-500 to-zenith-400"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${mpcProgress.progress}%` }}
+                      transition={{ duration: 0.5 }}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {mpcProgress.stage === 'encrypting' && 'Step 1 of 3: Encrypting vote data'}
+                    {mpcProgress.stage === 'queueing' && 'Step 2 of 3: Queuing MPC computation'}
+                    {mpcProgress.stage === 'computing' && 'Step 3 of 3: Waiting for Arcium network'}
+                    {mpcProgress.stage === 'finalizing' && 'Finalizing transaction...'}
+                  </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             {/* Action Buttons */}
             <div className="flex space-x-3">
               <button
                 onClick={onClose}
-                className="flex-1 py-3 px-4 bg-muted/20 border border-border/30 rounded-lg text-muted-foreground hover:bg-muted/30 transition-colors"
+                disabled={isSubmitting}
+                className="flex-1 py-3 px-4 bg-muted/20 border border-border/30 rounded-lg text-muted-foreground hover:bg-muted/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSubmitVote}
-                disabled={isSubmitting || stakeAmount <= 0}
+                disabled={isSubmitting || stakeAmount <= 0 || !isInitialized}
                 className={`flex-1 py-3 px-4 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2 ${
                   voteChoice === VoteChoice.Yes
                     ? 'bg-success-500/20 border border-success-500/30 text-success-400 hover:bg-success-500/30'
@@ -403,7 +478,12 @@ export const EncryptedVoteModal: React.FC<EncryptedVoteModalProps> = ({
                 {isSubmitting ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Encrypting...</span>
+                    <span>Processing...</span>
+                  </>
+                ) : !isInitialized ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Initializing SDK...</span>
                   </>
                 ) : (
                   <>

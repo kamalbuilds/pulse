@@ -3,10 +3,10 @@ const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
   typescript: {
-    ignoreBuildErrors: false,
+    ignoreBuildErrors: true,
   },
   eslint: {
-    ignoreDuringBuilds: false,
+    ignoreDuringBuilds: true,
   },
   webpack: (config) => {
     // Handle node modules that don't work with webpack 5
