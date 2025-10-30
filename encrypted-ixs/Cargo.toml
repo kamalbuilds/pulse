@@ -5,3 +5,4 @@ edition = "2021"
 
 [dependencies]
 arcis-imports = { version = "0.3.0" }
+idna_adapter = "=1.1.0"

@@ -10,7 +10,7 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@arcium-hq/client": "^0.1.47",
+    "@arcium-hq/client": "^0.3.0",
     "@coral-xyz/anchor": "^0.31.1",
     "@noble/curves": "1.9.5",
     "@radix-ui/react-dialog": "^1.1.1",
