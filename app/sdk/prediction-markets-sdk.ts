@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * Prediction Markets SDK with Arcium MPC Integration
  *
@@ -29,7 +31,6 @@ import {
   getMXEAccAddress,
   getMempoolAccAddress,
   getExecutingPoolAccAddress,
-  getMXEPublicKey,
 } from "@arcium-hq/client";
 import { randomBytes } from "crypto";
 import { PredictionMarkets } from "../../target/types/prediction_markets";
@@ -669,11 +670,22 @@ export class PredictionMarketsSDK {
   ): Promise<Uint8Array> {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        const mxePubKey = await getMXEPublicKey(
-          this.provider,
-          this.config.programId
+        // Get MXE account address
+        const mxeAccountAddress = getMXEAccAddress(
+          this.config.clusterOffset,
+          this.arciumProgram
         );
-        if (mxePubKey) {
+
+        // Fetch MXE account data
+        const mxeAccountInfo = await this.provider.connection.getAccountInfo(
+          mxeAccountAddress
+        );
+
+        if (mxeAccountInfo && mxeAccountInfo.data) {
+          // MXE public key is stored at offset 8 (after discriminator)
+          // It's a 32-byte ed25519 public key
+          const mxePubKey = new Uint8Array(mxeAccountInfo.data.slice(8, 40));
+          console.log(`✅ Fetched MXE public key: ${Buffer.from(mxePubKey).toString('hex').slice(0, 16)}...`);
           return mxePubKey;
         }
       } catch (error: any) {

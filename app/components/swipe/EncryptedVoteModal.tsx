@@ -18,7 +18,7 @@ import {
 import { Market, VoteChoice } from '@/types/market';
 import ArciumPredictionMarketsClient, { ArciumUtils } from '@/lib/arciumClient';
 import HerdingDetection, { HerdingAnalysis } from '@/components/privacy/HerdingDetection';
-import { usePredictionMarkets } from '@/sdk/hooks/usePredictionMarkets';
+import { useClientSDK } from '@/sdk/hooks/useClientSDK';
 import { BN } from '@coral-xyz/anchor';
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 
@@ -40,8 +40,8 @@ export const EncryptedVoteModal: React.FC<EncryptedVoteModalProps> = ({
   const wallet = useWallet();
   const { connection } = useConnection();
 
-  // NEW: Use production SDK instead of mock client
-  const { sdk, isInitialized, error: sdkError } = usePredictionMarkets();
+  // NEW: Use production SDK with client-only loading
+  const { sdk, isInitialized, error: sdkError } = useClientSDK();
 
   // FALLBACK: Keep mock client for development/testing
   const [arciumClient] = useState(() => new ArciumPredictionMarketsClient(connection, wallet));
