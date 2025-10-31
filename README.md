@@ -458,51 +458,51 @@ The Arcium MPC (Multi-Party Computation) network ensures that voter data remains
 │                        MPC ARCHITECTURE OVERVIEW                              │
 └───────────────────────────────────────────────────────────────────────────────┘
 
-┌──────────────────┐
-│  Client Browser  │
-│  ┌────────────┐  │
-│  │ Encrypt    │  │
-│  │ Vote Data  │  │
-│  └─────┬──────┘  │
-└────────┼─────────┘
-         │
-         │ Submit Encrypted Transaction
-         ▼
+                        ┌──────────────────┐
+                        │  Client Browser  │
+                        │  ┌────────────┐  │
+                        │  │ Encrypt    │  │
+                        │  │ Vote Data  │  │
+                        │  └─────┬──────┘  │
+                        └────────┼─────────┘
+                                 │
+                                 │ Submit Encrypted Transaction
+                                 ▼
 ┌─────────────────────────────────────────────────────────────────────┐
 │                    SOLANA BLOCKCHAIN                                │
-│  ┌──────────────────────────────────────────────────────────────┐  │
-│  │  Smart Contract: queue_computation()                         │  │
-│  │  • Stores encrypted ciphertexts                              │  │
-│  │  • Creates computation request                               │  │
-│  │  • Emits event for MPC cluster                              │  │
-│  └────────────────┬─────────────────────────────────────────────┘  │
-└───────────────────┼────────────────────────────────────────────────┘
+│  ┌──────────────────────────────────────────────────────────────┐   │
+│  │  Smart Contract: queue_computation()                         │   │
+│  │  • Stores encrypted ciphertexts                              │   │
+│  │  • Creates computation request                               │   │
+│  │  • Emits event for MPC cluster                               │   │
+│  └────────────────┬─────────────────────────────────────────────┘   │
+└───────────────────┼────────────────────────────────────────────────-┘
                     │
                     │ MPC Computation Request
                     ▼
 ┌────────────────────────────────────────────────────────────────────────────┐
 │                      ARCIUM MPC CLUSTER                                    │
 │                                                                            │
-│    ┌──────────┐      ┌──────────┐      ┌──────────┐                       │
-│    │  Node 1  │      │  Node 2  │      │  Node 3  │                       │
-│    │  Share A │      │  Share B │      │  Share C │                       │
-│    └────┬─────┘      └────┬─────┘      └────┬─────┘                       │
+│    ┌──────────┐      ┌──────────┐      ┌──────────┐                        │
+│    │  Node 1  │      │  Node 2  │      │  Node 3  │                        │
+│    │  Share A │      │  Share B │      │  Share C │                        │
+│    └────┬─────┘      └────┬─────┘      └────┬─────┘                        │
 │         │                 │                 │                              │
 │         └─────────────────┼─────────────────┘                              │
 │                           │                                                │
-│    ┌──────────┐      ┌────▼─────┐      ┌──────────┐                       │
+│    ┌──────────┐      ┌────▼─────┐      ┌──────────┐                        │
 │    │  Node 4  │◄─────┤ Threshold │─────►│  Node 5  │                       │
 │    │  Share D │      │ Computing │      │  Share E │                       │
-│    └──────────┘      └────┬─────┘      └──────────┘                       │
+│    └──────────┘      └────┬─────┘      └──────────┘                        │
 │                           │                                                │
-│  ┌────────────────────────────────────────────────────────────────┐       │
-│  │         SECRET SHARING (Shamir's Secret Sharing)               │       │
-│  │  • Each vote split into 5 shares                               │       │
-│  │  • Threshold: 3-of-5 nodes required                            │       │
-│  │  • No single node sees plaintext data                          │       │
-│  │  • Computation on encrypted shares                             │       │
-│  │  • Results reconstructed without revealing inputs              │       │
-│  └────────────────────────────────────────────────────────────────┘       │
+│  ┌────────────────────────────────────────────────────────────────┐        │
+│  │         SECRET SHARING (Shamir's Secret Sharing)               │        │
+│  │  • Each vote split into 5 shares                               │        │
+│  │  • Threshold: 3-of-5 nodes required                            │        │
+│  │  • No single node sees plaintext data                          │        │
+│  │  • Computation on encrypted shares                             │        │
+│  │  • Results reconstructed without revealing inputs              │        │
+│  └────────────────────────────────────────────────────────────────┘        │
 │                           │                                                │
 │                           │ Aggregated Results                             │
 └───────────────────────────┼────────────────────────────────────────────────┘
@@ -510,24 +510,24 @@ The Arcium MPC (Multi-Party Computation) network ensures that voter data remains
                             ▼
 ┌────────────────────────────────────────────────────────────────────┐
 │                    SOLANA BLOCKCHAIN                               │
-│  ┌──────────────────────────────────────────────────────────────┐ │
-│  │  Smart Contract: vote_callback()                             │ │
-│  │  • Receives computation result                               │ │
-│  │  • Updates market state                                      │ │
-│  │  • Emits events for frontend                                 │ │
-│  │  • Individual votes remain encrypted                         │ │
-│  └──────────────────────────────────────────────────────────────┘ │
+│  ┌──────────────────────────────────────────────────────────────┐  │
+│  │  Smart Contract: vote_callback()                             │  │
+│  │  • Receives computation result                               │  │
+│  │  • Updates market state                                      │  │
+│  │  • Emits events for frontend                                 │  │
+│  │  • Individual votes remain encrypted                         │  │
+│  └──────────────────────────────────────────────────────────────┘  │
 └────────────────────────────────────────────────────────────────────┘
                             │
                             │ Updated State
                             ▼
-┌──────────────────┐
-│  Client Browser  │
-│  ┌────────────┐  │
-│  │ Display    │  │
-│  │ Results    │  │
-│  └────────────┘  │
-└──────────────────┘
+                 ┌──────────────────┐
+                 │  Client Browser  │
+                 │  ┌────────────┐  │
+                 │  │ Display    │  │
+                 │  │ Results    │  │
+                 │  └────────────┘  │
+                 └──────────────────┘
 ```
 
 ### The 7 Encrypted Fields
