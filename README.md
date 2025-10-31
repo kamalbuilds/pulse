@@ -386,9 +386,9 @@ When a user votes on a prediction market, their data goes through a sophisticate
 │                          ENCRYPTION FLOW PIPELINE                           │
 └─────────────────────────────────────────────────────────────────────────────┘
 
-    User Vote Input
-         │
-         ▼
+       User Vote Input
+             │
+             ▼
     ┌─────────────────────┐
     │ Generate Ephemeral  │
     │ x25519 Keypair      │
@@ -426,27 +426,27 @@ When a user votes on a prediction market, their data goes through a sophisticate
                ▼
     ┌─────────────────────────────────────────────────────────┐
     │          ARCIUM MPC CLUSTER PROCESSING                  │
-    │  ┌─────┐  ┌─────┐  ┌─────┐  ┌─────┐  ┌─────┐          │
-    │  │Node1│  │Node2│  │Node3│  │Node4│  │Node5│          │
-    │  └──┬──┘  └──┬──┘  └──┬──┘  └──┬──┘  └──┬──┘          │
-    │     └────────┴────────┴────────┴────────┘              │
+    │  ┌─────┐  ┌─────┐  ┌─────┐  ┌─────┐  ┌─────┐            │
+    │  │Node1│  │Node2│  │Node3│  │Node4│  │Node5│            │
+    │  └──┬──┘  └──┬──┘  └──┬──┘  └──┬──┘  └──┬──┘            │
+    │     └────────┴────────┴────────┴────────┘               │
     │              Threshold: 3-of-5                          │
     │         (Data never fully decrypted)                    │
     └────────────────────────┬────────────────────────────────┘
                              │
                              ▼
-    ┌─────────────────────┐
-    │ Finalize On-Chain   │
-    │ (callback handler)  │
-    │ Update Market State │
-    └──────────┬──────────┘
-               │
-               ▼
-    ┌─────────────────────┐
-    │ Store Encrypted     │
-    │ Results On-Chain    │
-    │ (Solana Blockchain) │
-    └─────────────────────┘
+                 ┌─────────────────────┐
+                 │ Finalize On-Chain   │
+                 │ (callback handler)  │
+                 │ Update Market State │
+                 └──────────┬──────────┘
+                            │
+                            ▼
+                 ┌─────────────────────┐
+                 │ Store Encrypted     │
+                 │ Results On-Chain    │
+                 │ (Solana Blockchain) │
+                 └─────────────────────┘
 ```
 
 ### MPC Architecture
